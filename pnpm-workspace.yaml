@@ -1,6 +1,7 @@
 packages:
-  - '.'
+  - .
 
 onlyBuiltDependencies:
   - '@biomejs/biome'
   - esbuild
+  - vue-demi

@@ -6,10 +6,68 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+
+  /* 主题变量 */
+  --base-100: #f9fafb;
+  --base-200: #f3f4f6;
+  --base-300: #e5e7eb;
+  --bg-success: #f0fdf4;
+  --bg-warning: #fffbeb;
+  --bg-error: #fef2f2;
+  --bg-info: #f0f9ff;
+  --bg-purple: #faf5ff;
+  --bg-orange: #fff7ed;
+  --primary: #111827;
+  --secondary: #6b7280;
+  --success: #166534;
+  --warning: #d97706;
+  --text-error: #dc2626;
+  --text-purple: #7c3aed;
+  --text-orange: #ea580c;
+  --border-primary: #d1d5db;
+  --border-secondary: #e5e7eb;
+}
+
+.dark {
+  --base-100: #111827;
+  --base-200: #1f2937;
+  --base-300: #374151;
+  --bg-success: #064e3b;
+  --bg-warning: #451a03;
+  --bg-error: #7f1d1d;
+  --bg-info: #0c4a6e;
+  --bg-purple: #581c87;
+  --bg-orange: #9a3412;
+  --primary: #f9fafb;
+  --secondary: #9ca3af;
+  --success: #10b981;
+  --warning: #f59e0b;
+  --text-error: #ef4444;
+  --text-purple: #a855f7;
+  --text-orange: #f97316;
+  --border-primary: #4b5563;
+  --border-secondary: #374151;
 }
 
 body {
   margin: 0;
   background-color: black;
   overflow: hidden;
+}
+
+/* CodeMirror 编辑器样式 */
+.cm-editor {
+  width: 100% !important;
+}
+
+.cm-scroller {
+  width: 100% !important;
+  height: 100% !important;
+  min-height: 300px;
+  max-height: 500px;
+}
+
+.cm-content {
+  width: 100% !important;
+  min-height: 100% !important;
 }
