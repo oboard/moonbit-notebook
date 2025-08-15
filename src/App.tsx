@@ -27,14 +27,14 @@ function App() {
 
   // MoonBit 解释器
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-    const moonbitEvalRef = useRef<{ interpreter: any } | null>(null);
+  const moonbitEvalRef = useRef<{ interpreter: any } | null>(null);
 
   // 初始化 MoonBit 解释器
   const initMoonBit = useCallback(async () => {
     try {
       moonbitEvalRef.current = await create(false);
       if (moonbitEvalRef.current) {
-        add_extern_fn(moonbitEvalRef.current.interpreter, "print", (content: { _0: { _0: { _0: string } } }) => {
+        add_extern_fn(moonbitEvalRef.current.interpreter, "println", (content: { _0: { _0: { _0: string } } }) => {
           // 提取实际的字符串内容
           const message = content._0._0._0;
 
@@ -52,7 +52,6 @@ function App() {
           }
         })
       }
-      console.log('MoonBit 解释器初始化成功');
     } catch (error: unknown) {
       console.error('MoonBit 解释器初始化失败:', error);
     }
@@ -125,15 +124,17 @@ function App() {
       const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
       const result = eval_mb(moonbitEvalRef.current, code, false, false);
       console.log(result);
-      // 添加输出
-      addCellOutput(cellId, {
-        output_type: 'execute_result',
-        execution_count: 1,
-        data: {
-          'text/plain': expr_to_string(result._0.value)
-        },
-        metadata: {}
-      });
+      if (result._0.value) {
+        // 添加输出
+        addCellOutput(cellId, {
+          output_type: 'execute_result',
+          execution_count: 1,
+          data: {
+            'text/plain': expr_to_string(result._0.value)
+          },
+          metadata: {}
+        });
+      }
     } catch (error) {
       // 添加错误输出
       addCellOutput(cellId, {

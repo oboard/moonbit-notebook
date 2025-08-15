@@ -75,31 +75,6 @@ export function NotebookToolbar({
           {currentFilePath || 'Untitled.ipynb'}
         </span>
       </div>
-
-      {/* 右侧 Cell 操作 */}
-      <div className="flex items-center gap-2">
-        <Button
-          onClick={() => onAddCell('code')}
-          variant="solid"
-          size="2"
-          color="violet"
-          title="添加代码 Cell"
-        >
-          <PlusIcon className="w-4 h-4" />
-          代码
-        </Button>
-
-        <Button
-          onClick={() => onAddCell('markdown')}
-          variant="solid"
-          size="2"
-          color="orange"
-          title="添加 Markdown Cell"
-        >
-          <PlusIcon className="w-4 h-4" />
-          文档
-        </Button>
-      </div>
     </Toolbar.Root>
   );
 }

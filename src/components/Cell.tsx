@@ -1,5 +1,5 @@
-import { useEffect, useState, useCallback } from 'react';
-import Editor from '@monaco-editor/react';
+import { useEffect, useState, useCallback, useRef } from 'react';
+import * as monaco from 'monaco-editor';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@radix-ui/themes';
 import {
@@ -12,17 +12,7 @@ import {
 } from 'lucide-react';
 import type { NotebookCell as CellType, CellOutput } from '../types/notebook';
 import clsx from 'clsx';
-import { registerMoonbitLanguage, getMonacoLanguage, applyMoonbitTheme } from '../utils/moonbitLanguage';
-
-// Monaco Editor 语言映射
-// MoonBit 语言注册（仅注册一次）
-let moonbitRegistered = false;
-const ensureMoonbitLanguage = () => {
-  if (!moonbitRegistered) {
-    registerMoonbitLanguage();
-    moonbitRegistered = true;
-  }
-};
+import { registerMoonbitLanguage } from '../utils/moonbitLanguage';
 
 // 安全的 Markdown 渲染组件
 const MarkdownRenderer: React.FC<{ content: string; onClick: () => void }> = ({ content, onClick }) => {
@@ -31,7 +21,7 @@ const MarkdownRenderer: React.FC<{ content: string; onClick: () => void }> = ({ 
       .split('\n')
       .map((line, index) => {
         const key = `line-${index}-${line.substring(0, 20)}`; // 使用内容片段作为 key
-        
+
         if (line.startsWith('### ')) {
           return <h3 key={key} className="text-lg font-semibold mt-4 mb-2">{line.slice(4)}</h3>;
         }
@@ -103,6 +93,91 @@ interface CellProps {
   onDelete: () => void;
 }
 
+// 原生 Monaco 编辑器组件
+interface CodeEditorProps {
+  value: string;
+  onChange: (value: string) => void;
+  height: number;
+  language: string;
+
+}
+
+const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height }) => {
+  const editorRef = useRef<HTMLDivElement>(null);
+  const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
+  const isInitialized = useRef(false);
+  const onChangeRef = useRef(onChange);
+
+  // 保持 onChange 引用最新
+  useEffect(() => {
+    onChangeRef.current = onChange;
+  }, [onChange]);
+
+  // 初始化编辑器（只执行一次）
+  useEffect(() => {
+    if (!editorRef.current || isInitialized.current) return;
+
+    // 注册 MoonBit 语言
+    registerMoonbitLanguage();
+
+    // 创建编辑器实例
+    const editor = monaco.editor.create(editorRef.current, {
+      value: '',
+      language: 'moonbit',
+      theme: 'vs-dark',
+      minimap: { enabled: false },
+      scrollBeyondLastLine: false,
+      fontSize: 14,
+      lineNumbers: 'on',
+      wordWrap: 'on',
+      automaticLayout: true,
+      tabSize: 2,
+      insertSpaces: true,
+      'semanticHighlighting.enabled': false,
+      quickSuggestions: false,
+      parameterHints: { enabled: false },
+      suggestOnTriggerCharacters: false,
+      acceptSuggestionOnEnter: 'off',
+      tabCompletion: 'off',
+      wordBasedSuggestions: 'off',
+      hover: { enabled: false },
+      links: false,
+      colorDecorators: false
+    });
+
+    editorInstanceRef.current = editor;
+    isInitialized.current = true;
+
+    // 监听内容变化
+    const disposable = editor.onDidChangeModelContent(() => {
+      const newValue = editor.getValue();
+      onChangeRef.current(newValue);
+    });
+
+    return () => {
+      disposable.dispose();
+      editor.dispose();
+      isInitialized.current = false;
+    };
+  }, []); // 空依赖数组，只初始化一次
+
+  // 更新编辑器值
+  useEffect(() => {
+    if (editorInstanceRef.current && editorInstanceRef.current.getValue() !== value) {
+      editorInstanceRef.current.setValue(value);
+    }
+  }, [value]);
+
+  // 更新编辑器高度
+  useEffect(() => {
+    if (editorInstanceRef.current) {
+      editorInstanceRef.current.layout({ width: 0, height });
+    }
+  }, [height]);
+
+  return <div ref={editorRef} style={{ width: '100%', height: `${height}px` }} />;
+};
+
 export const Cell: React.FC<CellProps> = ({
   cell,
   isActive,
@@ -128,18 +203,13 @@ export const Cell: React.FC<CellProps> = ({
     const lineHeight = 20; // 每行高度
     const padding = 20; // 上下内边距
     const maxHeight = 400; // 最大高度
-    
+
     const calculatedHeight = Math.max(minHeight, Math.min(maxHeight, lines * lineHeight + padding));
     return calculatedHeight;
   }, [editorValue]);
 
   const isCodeCell = cell.cell_type === 'code';
   const isMarkdownCell = cell.cell_type === 'markdown';
-  // 获取 Monaco 主题
-  const getMonacoTheme = useCallback(() => {
-    // 这里可以根据 currentTheme 返回对应的 Monaco 主题
-    return 'vs-dark'; // 默认使用暗色主题，后续可以根据实际主题切换
-  }, []);
 
   // 处理编辑器值变化
   const handleEditorChange = useCallback((value: string | undefined) => {
@@ -149,36 +219,10 @@ export const Cell: React.FC<CellProps> = ({
   }, [onUpdate]);
 
   // 处理编辑器键盘事件
-  const handleEditorKeyDown = useCallback((e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      e.preventDefault();
-      if (isCodeCell) {
-        onExecute();
-      } else if (isMarkdownCell) {
-        stopMarkdownEditing();
-      }
-    }
-    if (e.key === 'Escape') {
-      e.preventDefault();
-      if (isMarkdownCell) {
-        stopMarkdownEditing();
-      }
-    }
-  }, [isCodeCell, isMarkdownCell, onExecute]);
 
   // 开始 Markdown 编辑
   const startMarkdownEditing = useCallback(() => {
     setIsMarkdownEditing(true);
-    onClick();
-  }, [onClick]);
-
-  // 停止 Markdown 编辑
-  const stopMarkdownEditing = useCallback(() => {
-    setIsMarkdownEditing(false);
-  }, []);
-
-  // 处理点击
-  const handleClick = useCallback(() => {
     onClick();
   }, [onClick]);
 
@@ -204,16 +248,8 @@ export const Cell: React.FC<CellProps> = ({
   }, []);
 
   // 处理 Markdown 输入
-  const handleMarkdownInput = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
-    onUpdate({ source: [e.target.value] });
-  }, [onUpdate]);
 
   // 处理 Markdown 键盘事件
-  const handleMarkdownKeyDown = useCallback((e: React.KeyboardEvent<HTMLTextAreaElement>) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
-      stopMarkdownEditing();
-    }
-  }, [stopMarkdownEditing]);
 
   // 同步编辑器值与 cell.source
   useEffect(() => {
@@ -232,8 +268,6 @@ export const Cell: React.FC<CellProps> = ({
           'border-gray-200 hover:border-gray-300': !isActive
         }
       )}
-      onClick={handleClick}
-      onKeyDown={handleClick}
     >
       {/* Cell 头部 */}
       <div className="cell-header flex items-center justify-between px-3 py-2 border-b border-gray-200 rounded-t-lg">
@@ -338,89 +372,24 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Cell 内容 */}
       <div className="cell-content flex-1">
-        {/* 代码单元格 - 始终显示 Monaco 编辑器 */}
+        {/* 代码单元格 - 使用原生 Monaco 编辑器 */}
         {isCodeCell && (
-          <div className="w-full" style={{ height: `${calculateEditorHeight()}px` }}>
-            <Editor
-              height="100%"
-              language={getMonacoLanguage(cell.cell_type)}
-              value={editorValue}
-              defaultLanguage='moonbit'
-              onChange={handleEditorChange}
-              theme={getMonacoTheme()}
-              onMount={(editor, monaco) => {
-                // 确保 MoonBit 语言已注册
-                ensureMoonbitLanguage();
-                
-                // 应用 MoonBit 主题
-                applyMoonbitTheme();
-                
-                // 强制设置语言
-                if (cell.cell_type === 'code') {
-                  const model = editor.getModel();
-                  if (model) {
-                    monaco.editor.setModelLanguage(model, 'moonbit');
-                    console.log('✅ 编辑器语言已设置为 moonbit');
-                  }
-                }
-              }}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: 'on',
-                wordWrap: 'on',
-                automaticLayout: true,
-                tabSize: 2,
-                insertSpaces: true,
-                // 关闭语法检查和错误提示
-                'semanticHighlighting.enabled': false,
-                quickSuggestions: false,
-                parameterHints: { enabled: false },
-                suggestOnTriggerCharacters: false,
-                acceptSuggestionOnEnter: 'off',
-                tabCompletion: 'off',
-                wordBasedSuggestions: 'off',
-                // 关闭所有语言服务
-                hover: { enabled: false },
-                links: false,
-                colorDecorators: false
-              }}
-            />
-          </div>
+          <CodeEditor
+            value={editorValue}
+            onChange={handleEditorChange}
+            height={calculateEditorHeight()}
+            language="moonbit"
+          />
         )}
 
         {/* Markdown 单元格 - 编辑模式 */}
         {isMarkdownCell && isMarkdownEditing && (
-          <div className="w-full" style={{ height: `${calculateEditorHeight()}px` }}>
-            <Editor
-              height="100%"
-              language={getMonacoLanguage(cell.cell_type)}
-              value={editorValue}
-              onChange={handleEditorChange}
-              theme={getMonacoTheme()}
-              onMount={(editor, monaco) => {
-                ensureMoonbitLanguage();
-                // 强制刷新语法高亮
-                if (cell.cell_type === 'markdown') {
-                  const model = editor.getModel();
-                  if (model) {
-                    monaco.editor.setModelLanguage(model, 'markdown');
-                  }
-                }
-              }}
-              options={{
-                minimap: { enabled: false },
-                scrollBeyondLastLine: false,
-                fontSize: 14,
-                lineNumbers: 'on',
-                wordWrap: 'on',
-                automaticLayout: true,
-                tabSize: 2,
-                insertSpaces: true
-              }}
-            />
-          </div>
+          <CodeEditor
+            value={editorValue}
+            onChange={handleEditorChange}
+            height={calculateEditorHeight()}
+            language="markdown"
+          />
         )}
 
         {/* Markdown 单元格 - 渲染视图 */}
