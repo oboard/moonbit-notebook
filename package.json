@@ -15,17 +15,17 @@
   "dependencies": {
     "@xterm/addon-fit": "^0.10.0",
     "@xterm/xterm": "^5.5.0",
-    "chalk": "^5.3.0",
+    "chalk": "^5.5.0",
     "chevrotain": "^11.0.3",
-    "marked": "^14.1.2",
-    "vue": "^3.5.5"
+    "marked": "^14.1.4",
+    "vue": "^3.5.18"
   },
   "devDependencies": {
-    "@biomejs/biome": "^1.9.3",
-    "@vitejs/plugin-vue": "^5.1.2",
-    "typescript": "^5.5.3",
-    "unocss": "^0.62.3",
-    "vite": "^5.4.1",
-    "vue-tsc": "^2.0.29"
+    "@biomejs/biome": "^1.9.4",
+    "@vitejs/plugin-vue": "^5.2.4",
+    "typescript": "^5.9.2",
+    "unocss": "^0.62.4",
+    "vite": "^5.4.19",
+    "vue-tsc": "^2.2.12"
   }
 }

@@ -3,23 +3,24 @@ import { onMounted, onBeforeUnmount, ref } from 'vue';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import "@xterm/xterm/css/xterm.css";
-import { MoonBitVM, helloWorld } from './interpreter/index';
-import { MoonBitError, MoonBitErrorType } from './interpreter/error';
-import { MoonBitFunction } from './interpreter/function';
-import { MoonBitType, MoonBitValue } from './interpreter/types';
+import { add_extern_fn, create, eval as eval_mb, expr_to_string } from './interpreter/moonbit-eval';
+import MoonbitSyntaxHighlighter from './syntax-highlighter';
 
-
-const vm = new MoonBitVM();
+const vm = create(false);
+const highlighter = new MoonbitSyntaxHighlighter();
 
 // ANSI 转义码定义
 const RESET = "\x1b[0m";
 const GREEN = "\x1b[32m";
-// const YELLOW = "\x1b[33m";
+const YELLOW = "\x1b[33m";
 const RED = "\x1b[31m";
 // const BLUE = "\x1b[34m";
 // const MAGENTA = "\x1b[35m";
 // const CYAN = "\x1b[36m";
 // const WHITE = "\x1b[37m";
+
+
+const helloWorld = `${GREEN}Welcome to MoonRepl! ${YELLOW}Made with ${RED}❤️${YELLOW} by oboard${RESET}`
 
 // Function to check if a character is CJK (2-column wide in terminals)
 const isWideChar = (char: string) => {
@@ -77,22 +78,9 @@ onMounted(() => {
 
 
         // 添加内置函数
-        vm.interpreter.addFunction(
-            "println",
-            new MoonBitFunction(
-                [
-                    {
-                        type: MoonBitType.String,
-                        name: "arg",
-                    },
-                ],
-                MoonBitType.Unit,
-                (arg: MoonBitValue) => {
-                    term.writeln(`${arg.toString()}`);
-                    return new MoonBitValue(arg.toString(), MoonBitType.Unit);
-                }
-            )
-        );
+        add_extern_fn(vm.interpreter, "println", (arg: { _0: { _0: { _0: string } } }) => {
+            term.writeln(arg._0._0._0);
+        })
 
         // 监听窗口大小变化
         window.addEventListener('resize', handleResize);
@@ -100,29 +88,62 @@ onMounted(() => {
         // 输出彩色字符
         term.writeln(helloWorld);
 
-
         let inputBuffer = ''; // 存储用户输入
         let multilineBuffer = ''; // 存储多行输入
         const history: string[] = []; // 历史记录
         let historyIndex = -1; // 当前历史记录索引
         let cursorPosition = 0; // 光标位置
+        let bracketCount = 0; // 括号计数器
+        let parenCount = 0; // 圆括号计数器
+
+        // 计算括号数量
+        const countBrackets = (text: string) => {
+            let braces = 0;
+            let parens = 0;
+            for (const char of text) {
+                if (char === '{') braces++;
+                else if (char === '}') braces--;
+                else if (char === '(') parens++;
+                else if (char === ')') parens--;
+            }
+            return { braces, parens };
+        };
 
         const writePrompt = () => {
-            if (multilineBuffer.indexOf("\n") !== -1) {
-                term.write(`${GREEN}... ${RESET} `)
+            const totalText = multilineBuffer + (multilineBuffer ? '\n' : '') + inputBuffer;
+            const counts = countBrackets(totalText);
+            bracketCount = counts.braces;
+            parenCount = counts.parens;
+
+            // 如果有多行缓冲区内容，说明不是第一行，需要显示缩进
+            if (multilineBuffer.length > 0 && (bracketCount > 0 || parenCount > 0)) {
+                // 计算缩进级别
+                const indentLevel = Math.max(0, bracketCount + parenCount);
+                const indent = '  '.repeat(indentLevel); // 两个空格的缩进
+                term.write(`${GREEN}| ${RESET}${indent}`);
+                return;
+            }
+            // 如果有多行缓冲区但括号已闭合，或者是第一行但有未闭合括号
+            if (multilineBuffer.length > 0 || (bracketCount > 0 || parenCount > 0)) {
+                term.write(`${GREEN}| ${RESET}`);
                 return;
             }
             term.write(`${GREEN}❯ ${RESET}`); // 显示提示符
         };
         writePrompt();
 
-
         const refreshLine = () => {
             term.write('\r\x1b[K'); // 清除当前行
             writePrompt(); // 重新显示提示符
-            term.write(inputBuffer); // 显示当前输入
-            // 移动光标到正确的位置
-            const moveBack = inputBuffer.length - cursorPosition;
+
+            // 应用语法高亮
+            const highlightedText = highlighter.highlight(inputBuffer);
+            term.write(highlightedText); // 显示高亮后的输入
+
+            // 计算光标位置（需要考虑ANSI转义序列）
+            const plainText = highlighter.getPlainText(highlightedText);
+            const visibleLength = plainText.length;
+            const moveBack = visibleLength - cursorPosition;
             if (moveBack > 0) {
                 term.write(`\x1b[${moveBack}D`);
             }
@@ -134,6 +155,13 @@ onMounted(() => {
             inputBuffer = '';
             writePrompt();
         }
+
+        // 检查是否应该执行代码
+        const shouldExecute = () => {
+            const totalText = multilineBuffer + (multilineBuffer ? '\n' : '') + inputBuffer;
+            const counts = countBrackets(totalText);
+            return counts.braces === 0 && counts.parens === 0;
+        };
 
         // 自定义事件处理程序，允许 Ctrl+V/Cmd+V 粘贴
         term.attachCustomKeyEventHandler((event) => {
@@ -165,41 +193,48 @@ onMounted(() => {
                         term.clear();
                         inputBuffer = multilineBuffer = ''; // 清空输入缓冲区
                         cursorPosition = 0; // 重置光标位置
+                        bracketCount = 0; // 重置括号计数
+                        parenCount = 0; // 重置圆括号计数
                         writePrompt(); // 重新显示提示符
                         break;
                     }
-                    if (multilineBuffer.length > 0) {
-                        multilineBuffer += `\n${inputBuffer}`;
-                    } else {
-                        multilineBuffer = inputBuffer;
-                    }
-                    try {
-                        // console.log("inputBuffer", inputBuffer);
-                        // console.log("multilineBuffer", multilineBuffer)
-                        const result = vm.eval(multilineBuffer); // 执行表达式
-                        if (result instanceof MoonBitValue && result.type !== MoonBitType.Unit) {
-                            term.writeln(`${result}`); // 显示结果
-                        }
-                        multilineBuffer = '';
-                    } catch (e: unknown) {
-                        if (e instanceof MoonBitError) {
-                            if (e.type === MoonBitErrorType.MissingRCurly) {
-                                multilineBuffer += '\n';
-                                multilinePrompt();
-                                return;
-                            }
-                        }
-                        term.writeln(`${RED}${e}${RESET}`);
-                        multilineBuffer = '';
-                    }
 
-                    if (inputBuffer) {
-                        history.push(inputBuffer); // 将输入内容添加到历史记录
-                        historyIndex = history.length; // 重置历史索引
+                    // 检查是否应该执行代码
+                    if (shouldExecute()) {
+                        // 括号已闭合，执行代码
+                        if (multilineBuffer.length > 0) {
+                            multilineBuffer += `\n${inputBuffer}`;
+                        } else {
+                            multilineBuffer = inputBuffer;
+                        }
+                        try {
+                            // console.log("inputBuffer", inputBuffer);
+                            // console.log("multilineBuffer", multilineBuffer)
+                            const result = eval_mb(vm, multilineBuffer, false, false); // 执行表达式
+                            console.log(result)
+                            if (result._0.value) {
+                                term.writeln(expr_to_string(result._0.value)); // 显示结果
+                            }
+                            multilineBuffer = '';
+                        } catch (e: unknown) {
+                            term.writeln(`${RED}${e}${RESET}`);
+                            multilineBuffer = '';
+                        }
+
+                        if (inputBuffer) {
+                            history.push(inputBuffer); // 将输入内容添加到历史记录
+                            historyIndex = history.length; // 重置历史索引
+                        }
+                        inputBuffer = ''; // 清空输入缓冲区
+                        cursorPosition = 0; // 重置光标位置
+                        bracketCount = 0; // 重置括号计数
+                        parenCount = 0; // 重置圆括号计数
+                        writePrompt(); // 重新显示提示符
+                    } else {
+                        // 括号未闭合，继续多行输入
+                        multilineBuffer += (multilineBuffer ? '\n' : '') + inputBuffer;
+                        multilinePrompt();
                     }
-                    inputBuffer = ''; // 清空输入缓冲区
-                    cursorPosition = 0; // 重置光标位置
-                    writePrompt(); // 重新显示提示符
                     break;
                 case '\x7f': // Backspace key
                     if (cursorPosition > 0 && inputBuffer.length > 0) {
@@ -215,12 +250,25 @@ onMounted(() => {
                         }
 
                         refreshLine(); // Refresh the current line to reflect the updated input
+                    } else if (cursorPosition === 0 && multilineBuffer.length > 0) {
+                        // 当前行开头且有多行缓冲区时，将光标移到上一行末尾
+                        const lines = multilineBuffer.split('\n');
+                        if (lines.length > 0) {
+                            const lastLine = lines.pop() || '';
+                            multilineBuffer = lines.join('\n');
+                            inputBuffer = lastLine + inputBuffer;
+                            cursorPosition = lastLine.length;
+                            refreshLine();
+                        }
                     }
                     break;
                 case '\x03': // Ctrl + C
                     term.write('\r\n'); // 换行
                     inputBuffer = ''; // 清空输入缓冲区
+                    multilineBuffer = ''; // 清空多行缓冲区
                     cursorPosition = 0; // 重置光标位置
+                    bracketCount = 0; // 重置括号计数
+                    parenCount = 0; // 重置圆括号计数
                     writePrompt(); // 重新显示提示符
                     break;
 
@@ -233,6 +281,16 @@ onMounted(() => {
                             term.write('\x1b[D\x1b[D'); // Move cursor 2 positions left for wide chars
                         } else {
                             term.write('\x1b[D'); // Move cursor 1 position left for regular chars
+                        }
+                    } else if (cursorPosition === 0 && multilineBuffer.length > 0) {
+                        // 当前行开头且有多行缓冲区时，将光标移到上一行末尾
+                        const lines = multilineBuffer.split('\n');
+                        if (lines.length > 0) {
+                            const lastLine = lines.pop() || '';
+                            multilineBuffer = lines.join('\n');
+                            inputBuffer = lastLine + inputBuffer;
+                            cursorPosition = lastLine.length;
+                            refreshLine();
                         }
                     }
                     break;
@@ -247,6 +305,8 @@ onMounted(() => {
                             term.write('\x1b[C'); // Move cursor 1 position right for regular chars
                         }
                     }
+                    // 注意：右箭头键在行尾时移动到下一行的功能比较复杂，
+                    // 因为需要重新设计多行编辑的数据结构，暂时不实现
                     break;
 
                 case '\u001b[B': // 下箭头键
@@ -279,8 +339,9 @@ onMounted(() => {
                     inputBuffer =
                         inputBuffer.slice(0, cursorPosition) + key + inputBuffer.slice(cursorPosition);
                     cursorPosition += key.length; // 光标位置向右移动一位
-                    term.write(key); // 显示输入内容
-                    // refreshLine(); // 刷新行
+
+                    // 刷新整行以应用语法高亮
+                    refreshLine();
                     break;
             }
         });
@@ -303,7 +364,8 @@ onBeforeUnmount(() => {
     <div ref="terminalRef" class="w-screen h-screen">
 
     </div>
-    <a href="https://github.com/oboard/moonrepl" target="_blank" class="fixed top-4 right-8 text-white hover:text-gray-300 active:text-gray-500">
+    <a href="https://github.com/oboard/moonrepl" target="_blank"
+        class="fixed top-4 right-8 text-white hover:text-gray-300 active:text-gray-500">
         <svg width="24px" height="24px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd"
                 d="M16 0C7.16 0 0 7.3411 0 16.4047C0 23.6638 4.58 29.795 10.94 31.9687C11.74 32.1122 12.04 31.6201 12.04 31.1894C12.04 30.7998 12.02 29.508 12.02 28.1341C8 28.8928 6.96 27.1293 6.64 26.2065C6.46 25.7349 5.68 24.279 5 23.8893C4.44 23.5818 3.64 22.823 4.98 22.8025C6.24 22.782 7.14 23.9919 7.44 24.484C8.88 26.9652 11.18 26.268 12.1 25.8374C12.24 24.7711 12.66 24.0534 13.12 23.6433C9.56 23.2332 5.84 21.8183 5.84 15.5435C5.84 13.7594 6.46 12.283 7.48 11.1347C7.32 10.7246 6.76 9.04309 7.64 6.78745C7.64 6.78745 8.98 6.35682 12.04 8.46893C13.32 8.09982 14.68 7.91527 16.04 7.91527C17.4 7.91527 18.76 8.09982 20.04 8.46893C23.1 6.33632 24.44 6.78745 24.44 6.78745C25.32 9.04309 24.76 10.7246 24.6 11.1347C25.62 12.283 26.24 13.7389 26.24 15.5435C26.24 21.8388 22.5 23.2332 18.94 23.6433C19.52 24.1559 20.02 25.1402 20.02 26.6781C20.02 28.8723 20 30.6358 20 31.1894C20 31.6201 20.3 32.1327 21.1 31.9687C27.42 29.795 32 23.6433 32 16.4047C32 7.3411 24.84 0 16 0Z"
