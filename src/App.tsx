@@ -17,12 +17,17 @@ function App() {
     deleteCell,
     moveCell,
     updateCell,
+    updateCellMetadata,
+    executeCell,
     setActiveCell,
     addCellOutput,
     clearCellOutput,
     loadNotebook,
     newNotebook,
-    activeCellData
+    activeCellData,
+    startCellExecution,
+    stopCellExecution,
+    isCellExecuting
   } = useNotebook();
 
   // MoonBit 解释器
@@ -84,7 +89,7 @@ function App() {
       }
     } catch (error) {
       console.error('打开文件失败:', error);
-      alert(`打开文件失败: ${error}`);
+      alert(`Failed to open file: ${error}`);
     }
   };
 
@@ -93,11 +98,11 @@ function App() {
       const success = await fileService.saveNotebook(notebook);
       if (success) {
         // 保存成功后标记为未修改
-        console.log('文件保存成功');
+        console.log('File saved successfully');
       }
     } catch (error) {
       console.error('保存文件失败:', error);
-      alert(`保存文件失败: ${error}`);
+      alert(`Failed to save file: ${error}`);
     }
   };
 
@@ -106,11 +111,11 @@ function App() {
       // fileService 没有 saveNotebookAs 方法，使用 saveNotebook
       const success = await fileService.saveNotebook(notebook);
       if (success) {
-        console.log('另存为成功');
+        console.log('Save as successful');
       }
     } catch (error) {
       console.error('另存为失败:', error);
-      alert(`另存为失败: ${error}`);
+      alert(`Save as failed: ${error}`);
     }
   };
 
@@ -130,16 +135,39 @@ function App() {
     const cell = notebook.cells.find((c: NotebookCell) => c.id === cellId);
     if (!cell || cell.cell_type !== 'code' || !moonbitEvalRef.current) return;
 
+    // 如果正在执行，则停止执行
+    if (isCellExecuting(cellId)) {
+      stopCellExecution(cellId);
+      return;
+    }
+
     try {
+      // 开始执行状态
+      startCellExecution(cellId);
+      
       // 清除之前的输出
       clearCellOutput(cellId);
 
-      // 执行代码
+      // 执行代码并计时
       const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
+      const startTime = new Date().toISOString();
+      const perfStart = performance.now();
       const result = eval_mb(moonbitEvalRef.current, code, false, false);
+      const perfEnd = performance.now();
+      const endTime = new Date().toISOString();
+      const executionTime = perfEnd - perfStart;
+
+      // 更新cell的metadata中的ExecuteTime
+      updateCellMetadata(cellId, {
+        ExecuteTime: {
+          start_time: startTime,
+          end_time: endTime
+        }
+      });
+
       console.log(result);
       if (result._0.value) {
-        // 添加输出
+        // 添加执行结果输出
         addCellOutput(cellId, {
           output_type: 'execute_result',
           execution_count: 1,
@@ -149,6 +177,7 @@ function App() {
           metadata: {}
         });
       }
+      
     } catch (error) {
       // 添加错误输出
       addCellOutput(cellId, {
@@ -157,6 +186,9 @@ function App() {
         evalue: String(error),
         traceback: [String(error)]
       });
+    } finally {
+      // 结束执行状态
+      stopCellExecution(cellId);
     }
   };
 
@@ -189,6 +221,13 @@ function App() {
     setActiveCell(cellId);
   };
 
+  const handleRunAll = async () => {
+    const codeCells = notebook.cells.filter(cell => cell.cell_type === 'code');
+    for (const cell of codeCells) {
+      await handleExecuteCell(cell.id);
+    }
+  };
+
   // 初始化
   useEffect(() => {
     initMoonBit();
@@ -205,6 +244,7 @@ function App() {
         onSaveNotebook={handleSaveNotebook}
         onSaveAsNotebook={handleSaveAsNotebook}
         onAddCell={handleAddCell}
+        onRunAll={handleRunAll}
       />
 
       {/* Notebook 内容区域 */}
@@ -218,6 +258,7 @@ function App() {
           onMoveCell={handleMoveCell}
           onAddCell={handleAddCell}
           onSetActiveCell={handleSetActiveCell}
+          isCellExecuting={isCellExecuting}
         />
       </div>
     </div>

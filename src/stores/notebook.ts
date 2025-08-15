@@ -59,6 +59,16 @@ const reducer = (currentState: NotebookState, operation: CellOperation): Noteboo
       break;
     }
     
+    case 'UPDATE_CELL_METADATA': {
+      const index = cells.findIndex(cell => cell.id === operation.cellId);
+      if (index !== -1) {
+        cells[index] = { ...cells[index], metadata: { ...cells[index].metadata, ...operation.metadata } };
+        newState.notebook = { ...newState.notebook, cells };
+        newState.isDirty = true;
+      }
+      break;
+    }
+    
     case 'EXECUTE_CELL': {
       const index = cells.findIndex(cell => cell.id === operation.cellId);
       if (index !== -1 && cells[index].cell_type === 'code') {
@@ -69,6 +79,18 @@ const reducer = (currentState: NotebookState, operation: CellOperation): Noteboo
         };
         newState.notebook = { ...newState.notebook, cells };
       }
+      break;
+    }
+    
+    case 'START_CELL_EXECUTION': {
+      newState.executingCells = new Set(newState.executingCells);
+      newState.executingCells.add(operation.cellId);
+      break;
+    }
+    
+    case 'STOP_CELL_EXECUTION': {
+      newState.executingCells = new Set(newState.executingCells);
+      newState.executingCells.delete(operation.cellId);
       break;
     }
     
@@ -90,8 +112,14 @@ interface NotebookStore extends NotebookState {
   deleteCell: (cellId: string) => void;
   moveCell: (cellId: string, newIndex: number) => void;
   updateCell: (cellId: string, source: string[]) => void;
+  updateCellMetadata: (cellId: string, metadata: Record<string, unknown>) => void;
   executeCell: (cellId: string) => void;
   setActiveCell: (cellId: string | null) => void;
+  
+  // 执行状态管理
+  startCellExecution: (cellId: string) => void;
+  stopCellExecution: (cellId: string) => void;
+  isCellExecuting: (cellId: string) => boolean;
   
   // Cell输出操作
   addCellOutput: (cellId: string, output: CellOutput) => void;
@@ -114,6 +142,7 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
     executionCount: 0,
     isDirty: false,
     filePath: null,
+    executingCells: new Set<string>(),
     
     // 基础操作
     dispatch: (operation: CellOperation) => {
@@ -137,12 +166,29 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
       get().dispatch({ type: 'UPDATE_CELL', cellId, source });
     },
     
+    updateCellMetadata: (cellId: string, metadata: Record<string, unknown>) => {
+      get().dispatch({ type: 'UPDATE_CELL_METADATA', cellId, metadata });
+    },
+    
     executeCell: (cellId: string) => {
       get().dispatch({ type: 'EXECUTE_CELL', cellId });
     },
     
     setActiveCell: (cellId: string | null) => {
       get().dispatch({ type: 'SET_ACTIVE_CELL', cellId });
+    },
+    
+    // 执行状态管理
+    startCellExecution: (cellId: string) => {
+      get().dispatch({ type: 'START_CELL_EXECUTION', cellId });
+    },
+    
+    stopCellExecution: (cellId: string) => {
+      get().dispatch({ type: 'STOP_CELL_EXECUTION', cellId });
+    },
+    
+    isCellExecuting: (cellId: string) => {
+      return get().executingCells.has(cellId);
     },
     
     // Cell输出操作
@@ -185,7 +231,8 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
         activeCell: notebook.cells[0]?.id || null,
         executionCount: 0,
         isDirty: false,
-        filePath: filePath || null
+        filePath: filePath || null,
+        executingCells: new Set<string>()
       });
     },
     
@@ -219,11 +266,17 @@ export const useNotebook = () => {
     deleteCell: store.deleteCell,
     moveCell: store.moveCell,
     updateCell: store.updateCell,
+    updateCellMetadata: store.updateCellMetadata,
     executeCell: store.executeCell,
     setActiveCell: store.setActiveCell,
     addCellOutput: store.addCellOutput,
     clearCellOutput: store.clearCellOutput,
     loadNotebook: store.loadNotebook,
-    newNotebook: store.newNotebook
+    newNotebook: store.newNotebook,
+    
+    // 执行状态管理
+    startCellExecution: store.startCellExecution,
+    stopCellExecution: store.stopCellExecution,
+    isCellExecuting: store.isCellExecuting
   };
 };

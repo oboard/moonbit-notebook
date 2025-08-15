@@ -13,6 +13,7 @@ interface NotebookProps {
   onMoveCell: (cellId: string, direction: 'up' | 'down') => void;
   onAddCell: (type: 'code' | 'markdown', index?: number) => void;
   onSetActiveCell: (cellId: string) => void;
+  isCellExecuting: (cellId: string) => boolean;
 }
 
 export const Notebook: React.FC<NotebookProps> = ({
@@ -23,7 +24,8 @@ export const Notebook: React.FC<NotebookProps> = ({
   onDeleteCell,
   onMoveCell,
   onAddCell,
-  onSetActiveCell
+  onSetActiveCell,
+  isCellExecuting
 }) => {
   const handleCellClick = (cellId: string) => {
     onSetActiveCell(cellId);
@@ -58,8 +60,8 @@ export const Notebook: React.FC<NotebookProps> = ({
                 <FileTextIcon className="w-8 h-8 text-gray-400" />
               </div>
             </div>
-            <h3 className="text-lg font-medium text-gray-900 mb-2">开始创建你的 Notebook</h3>
-            <p className="text-gray-500 mb-8 max-w-sm mx-auto">添加代码或文档 Cell 来开始编写你的交互式笔记本</p>
+            <h3 className="text-lg font-medium text-gray-900 mb-2">Start Creating Your Notebook</h3>
+            <p className="text-gray-500 mb-8 max-w-sm mx-auto">Add code or markdown cells to start writing your interactive notebook</p>
             <div className="flex justify-center gap-3">
               <Button
                 onClick={() => onAddCell('code')}
@@ -68,7 +70,7 @@ export const Notebook: React.FC<NotebookProps> = ({
                 color="violet"
               >
                 <CodeIcon className="w-4 h-4" />
-                添加代码 Cell
+                Add Code Cell
               </Button>
               <Button
                 onClick={() => onAddCell('markdown')}
@@ -77,7 +79,7 @@ export const Notebook: React.FC<NotebookProps> = ({
                 color="gray"
               >
                 <FileTextIcon className="w-4 h-4" />
-                添加文档 Cell
+                Add Markdown Cell
               </Button>
             </div>
           </div>
@@ -100,6 +102,7 @@ export const Notebook: React.FC<NotebookProps> = ({
               <Cell
                 cell={cell}
                 isActive={cell.id === activeCellId}
+                isExecuting={isCellExecuting(cell.id)}
                 canMoveUp={canMoveUp(cell.id)}
                 canMoveDown={canMoveDown(cell.id)}
                 onClick={() => handleCellClick(cell.id)}
@@ -120,20 +123,20 @@ export const Notebook: React.FC<NotebookProps> = ({
                       size="1"
                       variant="ghost"
                       color="violet"
-                      title="添加代码 Cell"
+                      title="Add Code Cell"
                     >
                       <CodeIcon className="w-3 h-3" />
-                      代码
+                      Code
                     </Button>
                     <Button
                       onClick={() => handleAddCellAfter(index, 'markdown')}
                       size="1"
                       variant="ghost"
                       color="blue"
-                      title="添加 Markdown Cell"
+                      title="Add Markdown Cell"
                     >
                       <FileTextIcon className="w-3 h-3" />
-                      文档
+                      Markdown
                     </Button>
                   </div>
                 </div>
@@ -144,7 +147,7 @@ export const Notebook: React.FC<NotebookProps> = ({
           {/* 最后添加 Cell 的按钮 */}
           <div className="text-center py-8">
             <div className="bg-base-100 rounded-xl border border-gray-200 p-6 shadow-sm">
-              <h4 className="text-sm font-medium text-secondary mb-4">添加新的 Cell</h4>
+              <h4 className="text-sm font-medium text-secondary mb-4">Add New Cell</h4>
               <div className="flex justify-center gap-3">
                 <Button
                   onClick={() => onAddCell('code')}
@@ -154,7 +157,7 @@ export const Notebook: React.FC<NotebookProps> = ({
                 >
                   <PlusIcon className="w-4 h-4" />
                   <CodeIcon className="w-4 h-4" />
-                  代码 Cell
+                  Code Cell
                 </Button>
                 <Button
                   onClick={() => onAddCell('markdown')}
@@ -164,7 +167,7 @@ export const Notebook: React.FC<NotebookProps> = ({
                 >
                   <PlusIcon className="w-4 h-4" />
                   <FileTextIcon className="w-4 h-4" />
-                  文档 Cell
+                  Markdown Cell
                 </Button>
               </div>
             </div>

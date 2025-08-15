@@ -1,11 +1,20 @@
 // Notebook数据结构定义 - 兼容ipynb格式
 // "Good programmers worry about data structures" - Linus
 
+// ExecuteTime metadata interface for Jupyter compatibility
+export interface ExecuteTime {
+  start_time: string; // ISO8601 format
+  end_time: string;   // ISO8601 format
+}
+
 export interface NotebookCell {
   id: string;
   cell_type: 'code' | 'markdown';
   source: string[];
-  metadata: Record<string, unknown>;
+  metadata: {
+    ExecuteTime?: ExecuteTime;
+    [key: string]: unknown;
+  };
   execution_count: number | null;
   outputs?: CellOutput[];
 }
@@ -50,6 +59,7 @@ export interface NotebookState {
   executionCount: number;
   isDirty: boolean;
   filePath: string | null;
+  executingCells: Set<string>; // 正在执行的cell ID集合
 }
 
 // Cell操作类型
@@ -58,7 +68,10 @@ export type CellOperation =
   | { type: 'DELETE_CELL'; cellId: string }
   | { type: 'MOVE_CELL'; cellId: string; newIndex: number }
   | { type: 'UPDATE_CELL'; cellId: string; source: string[] }
+  | { type: 'UPDATE_CELL_METADATA'; cellId: string; metadata: Record<string, unknown> }
   | { type: 'EXECUTE_CELL'; cellId: string }
+  | { type: 'START_CELL_EXECUTION'; cellId: string }
+  | { type: 'STOP_CELL_EXECUTION'; cellId: string }
   | { type: 'SET_ACTIVE_CELL'; cellId: string | null };
 
 // 默认的notebook模板

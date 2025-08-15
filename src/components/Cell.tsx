@@ -4,6 +4,7 @@ import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@radix-ui/themes';
 import {
   Play,
+  Square,
   ChevronUp,
   ChevronDown,
   MoreHorizontal,
@@ -82,6 +83,7 @@ const MarkdownRenderer: React.FC<{ content: string; onClick: () => void }> = ({ 
 interface CellProps {
   cell: CellType;
   isActive: boolean;
+  isExecuting?: boolean;
   canMoveUp: boolean;
   canMoveDown: boolean;
   onUpdate: (updates: Partial<CellType>) => void;
@@ -181,6 +183,7 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height }) => {
 export const Cell: React.FC<CellProps> = ({
   cell,
   isActive,
+  isExecuting = false,
   canMoveUp,
   canMoveDown,
   onUpdate,
@@ -271,33 +274,49 @@ export const Cell: React.FC<CellProps> = ({
     >
       {/* Cell 头部 */}
       <div className="cell-header flex items-center justify-between px-3 py-2 border-b border-gray-200 rounded-t-lg">
-        {/* 左侧信息 */}
+        {/* 左侧：执行按钮 + 执行时间 */}
         <div className="flex items-center space-x-2">
-          <span className={"text-xs px-2 py-1 rounded font-mono bg-base-100 text-primary"}>
-            {isCodeCell ? 'Code' : 'Markdown'}
-          </span>
+          {/* 执行按钮 - 最左侧 */}
+          {isCodeCell && (
+            <Button
+              onClick={handleExecute}
+              size="1"
+              variant="ghost"
+              color={isExecuting ? "red" : "green"}
+              title={isExecuting ? "Stop execution" : "Execute (Ctrl/Cmd + Enter)"}
+            >
+              {isExecuting ? (
+                <Square className="w-4 h-4" />
+              ) : (
+                <Play className="w-4 h-4" />
+              )}
+            </Button>
+          )}
+          
+          {/* 执行时间显示 */}
+          {isCodeCell && cell.metadata?.ExecuteTime && (
+            <span className="text-xs text-gray-500 font-mono">
+              {(() => {
+                const executeTime = cell.metadata.ExecuteTime as { start_time: string; end_time: string };
+                const startTime = new Date(executeTime.start_time).getTime();
+                const endTime = new Date(executeTime.end_time).getTime();
+                const duration = endTime - startTime;
+                return `${duration.toFixed(2)}ms`;
+              })()} 
+            </span>
+          )}
+          
           {isCodeCell && cell.execution_count && (
             <span className="text-xs text-gray-500 font-mono">
               [{cell.execution_count}]
             </span>
           )}
         </div>
-
-        {/* 右侧操作按钮 */}
-        <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* 执行按钮 */}
-          {isCodeCell && (
-            <Button
-              onClick={handleExecute}
-              size="1"
-              variant="ghost"
-              color="green"
-              title="执行 (Ctrl/Cmd + Enter)"
-            >
-              <Play className="w-4 h-4" />
-            </Button>
-          )}
-
+        
+        {/* 右侧：操作按钮 + Cell类型标签 */}
+         <div className="flex items-center space-x-2">
+           {/* 操作按钮 */}
+           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
           {/* 移动按钮 */}
           <Button
             onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
@@ -305,7 +324,7 @@ export const Cell: React.FC<CellProps> = ({
             size="1"
             variant="ghost"
             color="gray"
-            title="上移"
+            title="Move Up"
           >
             <ChevronUp className="w-4 h-4" />
           </Button>
@@ -316,7 +335,7 @@ export const Cell: React.FC<CellProps> = ({
             size="1"
             variant="ghost"
             color="gray"
-            title="下移"
+            title="Move Down"
           >
             <ChevronDown className="w-4 h-4" />
           </Button>
@@ -328,7 +347,7 @@ export const Cell: React.FC<CellProps> = ({
                 size="1"
                 variant="ghost"
                 color="gray"
-                title="更多操作"
+                title="More Actions"
               >
                 <MoreHorizontal className="w-4 h-4" />
               </Button>
@@ -344,7 +363,7 @@ export const Cell: React.FC<CellProps> = ({
                   className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-purple hover:text-text-purple rounded cursor-pointer focus:outline-none focus:bg-bg-purple"
                 >
                   <Plus className="w-4 h-4" />
-                  添加代码 Cell
+                  Add Code Cell
                 </DropdownMenu.Item>
 
                 <DropdownMenu.Item
@@ -352,7 +371,7 @@ export const Cell: React.FC<CellProps> = ({
                   className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-orange hover:text-text-orange rounded cursor-pointer focus:outline-none focus:bg-bg-orange"
                 >
                   <Plus className="w-4 h-4" />
-                  添加文档 Cell
+                  Add Markdown Cell
                 </DropdownMenu.Item>
 
                 <DropdownMenu.Separator className="h-px bg-border-secondary my-1" />
@@ -362,13 +381,19 @@ export const Cell: React.FC<CellProps> = ({
                   className="flex items-center gap-2 px-2 py-1.5 text-sm text-text-error hover:bg-bg-error rounded cursor-pointer focus:outline-none focus:bg-bg-error"
                 >
                   <Trash2 className="w-4 h-4" />
-                  删除 Cell
+                  Delete Cell
                 </DropdownMenu.Item>
               </DropdownMenu.Content>
             </DropdownMenu.Portal>
           </DropdownMenu.Root>
-        </div>
-      </div>
+           </div>
+           
+           {/* Cell类型标签 */}
+           <span className={"text-xs px-2 py-1 rounded font-mono bg-base-100 text-primary"}>
+             {isCodeCell ? 'Code' : 'Markdown'}
+           </span>
+         </div>
+       </div>
 
       {/* Cell 内容 */}
       <div className="cell-content flex-1">
@@ -405,7 +430,7 @@ export const Cell: React.FC<CellProps> = ({
               onClick={startMarkdownEditing}
               className="w-full p-4 min-h-[60px] cursor-text prose max-w-none focus:outline-none focus:ring-2 focus:ring-blue-300 text-left bg-transparent border-none"
             >
-              <em className="text-gray-400">点击编辑 Markdown...</em>
+              <em className="text-gray-400">Click to edit Markdown...</em>
             </button>
           )
         )}
@@ -420,7 +445,7 @@ export const Cell: React.FC<CellProps> = ({
               <div
                 key={outputId}
                 className={`
-                  p-4 font-mono text-sm whitespace-pre-wrap
+                  px-4 py-2 font-mono text-sm whitespace-pre-wrap
                   ${output.output_type === 'error' ? 'bg-bg-error text-text-error' : 'bg-base-200 text-primary'}
                 `}
               >
