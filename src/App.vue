@@ -1,10 +1,94 @@
 <script setup lang="ts">
-import { onMounted, onBeforeUnmount, ref } from 'vue';
+import { onMounted, onBeforeUnmount, ref, nextTick } from 'vue';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import "@xterm/xterm/css/xterm.css";
 import { add_extern_fn, create, eval as eval_mb, expr_to_string } from './interpreter/moonbit-eval';
 import MoonbitSyntaxHighlighter from './syntax-highlighter';
+import { EditorView, lineNumbers, highlightActiveLineGutter, highlightSpecialChars, drawSelection, dropCursor, rectangularSelection, crosshairCursor, keymap } from '@codemirror/view';
+import { EditorState } from '@codemirror/state';
+import { foldGutter, indentOnInput, bracketMatching, foldKeymap } from '@codemirror/language';
+import { history, defaultKeymap, historyKeymap } from '@codemirror/commands';
+import { highlightSelectionMatches as highlightMatches } from '@codemirror/search';
+import { moonbit } from './moonbit-lang';
+import { oneDark } from '@codemirror/theme-one-dark';
+
+// 多行编辑器相关状态
+const showMultilineEditor = ref(false);
+const multilineCode = ref('');
+const editorRef = ref<HTMLElement | null>(null);
+let editorView: EditorView | null = null;
+
+// 初始化 CodeMirror 编辑器
+const initCodeMirror = async () => {
+    if (!editorRef.value) return;
+
+    const state = EditorState.create({
+        doc: multilineCode.value,
+        extensions: [
+            lineNumbers(),
+            highlightActiveLineGutter(),
+            highlightSpecialChars(),
+            history(),
+            foldGutter(),
+            drawSelection(),
+            dropCursor(),
+            EditorState.allowMultipleSelections.of(true),
+            indentOnInput(),
+            bracketMatching(),
+            rectangularSelection(),
+            crosshairCursor(),
+            highlightMatches(),
+            keymap.of([
+                ...defaultKeymap,
+                ...historyKeymap,
+                ...foldKeymap
+            ]),
+            moonbit(),
+            oneDark,
+            EditorView.updateListener.of((update) => {
+                if (update.docChanged) {
+                    multilineCode.value = update.state.doc.toString();
+                }
+            }),
+            EditorView.domEventHandlers({
+                keydown: (event) => {
+                    if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                        event.preventDefault();
+                        executeMultilineCode();
+                        return true;
+                    }
+                    if (event.key === 'Escape') {
+                        event.preventDefault();
+                        cancelMultilineEditor();
+                        return true;
+                    }
+                    return false;
+                }
+            })
+        ]
+    });
+
+    editorView = new EditorView({
+        state,
+        parent: editorRef.value
+    });
+
+    // 聚焦编辑器并将光标定位到最后
+    editorView.focus();
+    const docLength = editorView.state.doc.length;
+    editorView.dispatch({
+        selection: { anchor: docLength, head: docLength }
+    });
+};
+
+// 销毁编辑器
+const destroyEditor = () => {
+    if (editorView) {
+        editorView.destroy();
+        editorView = null;
+    }
+};
 
 const vm = create(false);
 const highlighter = new MoonbitSyntaxHighlighter();
@@ -89,7 +173,6 @@ onMounted(() => {
         term.writeln(helloWorld);
 
         let inputBuffer = ''; // 存储用户输入
-        let multilineBuffer = ''; // 存储多行输入
         const history: string[] = []; // 历史记录
         let historyIndex = -1; // 当前历史记录索引
         let cursorPosition = 0; // 光标位置
@@ -99,35 +182,14 @@ onMounted(() => {
         // 计算括号数量
         const countBrackets = (text: string) => {
             let braces = 0;
-            let parens = 0;
             for (const char of text) {
                 if (char === '{') braces++;
                 else if (char === '}') braces--;
-                else if (char === '(') parens++;
-                else if (char === ')') parens--;
             }
-            return { braces, parens };
+            return { braces };
         };
 
         const writePrompt = () => {
-            const totalText = multilineBuffer + (multilineBuffer ? '\n' : '') + inputBuffer;
-            const counts = countBrackets(totalText);
-            bracketCount = counts.braces;
-            parenCount = counts.parens;
-
-            // 如果有多行缓冲区内容，说明不是第一行，需要显示缩进
-            if (multilineBuffer.length > 0 && (bracketCount > 0 || parenCount > 0)) {
-                // 计算缩进级别
-                const indentLevel = Math.max(0, bracketCount + parenCount);
-                const indent = '  '.repeat(indentLevel); // 两个空格的缩进
-                term.write(`${GREEN}| ${RESET}${indent}`);
-                return;
-            }
-            // 如果有多行缓冲区但括号已闭合，或者是第一行但有未闭合括号
-            if (multilineBuffer.length > 0 || (bracketCount > 0 || parenCount > 0)) {
-                term.write(`${GREEN}| ${RESET}`);
-                return;
-            }
             term.write(`${GREEN}❯ ${RESET}`); // 显示提示符
         };
         writePrompt();
@@ -149,34 +211,38 @@ onMounted(() => {
             }
         };
 
-        const multilinePrompt = () => {
-            historyIndex = history.length;
-            history.push(inputBuffer);
-            inputBuffer = '';
-            writePrompt();
-        }
+
 
         // 检查是否应该执行代码
         const shouldExecute = () => {
-            const totalText = multilineBuffer + (multilineBuffer ? '\n' : '') + inputBuffer;
-            const counts = countBrackets(totalText);
-            return counts.braces === 0 && counts.parens === 0;
+            const counts = countBrackets(inputBuffer);
+            return counts.braces === 0;
+        };
+
+        // 检测是否需要多行编辑器
+        const checkMultilineInput = () => {
+            const counts = countBrackets(inputBuffer);
+            const hasNewlines = inputBuffer.includes('\n');
+            const hasUnclosedBrackets = counts.braces > 0;
+
+            if (hasNewlines || hasUnclosedBrackets || inputBuffer.length > 50) {
+                // 显示多行编辑器
+                multilineCode.value = inputBuffer;
+                showMultilineEditor.value = true;
+                // 清空terminal的输入
+                inputBuffer = '';
+                cursorPosition = 0;
+                // 初始化 CodeMirror
+                nextTick(() => {
+                    initCodeMirror();
+                });
+                return true;
+            }
+            return false;
         };
 
         // 自定义事件处理程序，允许 Ctrl+V/Cmd+V 粘贴
         term.attachCustomKeyEventHandler((event) => {
-            // console.log("event", event)
-            if (event.key === 'Enter' && event.shiftKey && event.type === "keydown") {
-                term.write('\r\n'); // 换行
-                multilineBuffer += `\n${inputBuffer}`;
-                multilinePrompt()
-                return false; // Prevent further processing of this Enter key
-            }
-
-            if (event.key === 'Enter' && event.type === "keypress") {
-                return false;
-            }
-
             if ((event.ctrlKey || event.metaKey) && event.key === "v") {
                 return true; // 允许 Ctrl+V 或 Cmd+V 粘贴
             }
@@ -191,7 +257,7 @@ onMounted(() => {
                     term.write('\r\n'); // 换行
                     if (inputBuffer === 'clear') {
                         term.clear();
-                        inputBuffer = multilineBuffer = ''; // 清空输入缓冲区
+                        inputBuffer = ''; // 清空输入缓冲区
                         cursorPosition = 0; // 重置光标位置
                         bracketCount = 0; // 重置括号计数
                         parenCount = 0; // 重置圆括号计数
@@ -202,23 +268,13 @@ onMounted(() => {
                     // 检查是否应该执行代码
                     if (shouldExecute()) {
                         // 括号已闭合，执行代码
-                        if (multilineBuffer.length > 0) {
-                            multilineBuffer += `\n${inputBuffer}`;
-                        } else {
-                            multilineBuffer = inputBuffer;
-                        }
                         try {
-                            // console.log("inputBuffer", inputBuffer);
-                            // console.log("multilineBuffer", multilineBuffer)
-                            const result = eval_mb(vm, multilineBuffer, false, false); // 执行表达式
-                            console.log(result)
+                            const result = eval_mb(vm, inputBuffer, false, false); // 执行表达式
                             if (result._0.value) {
                                 term.writeln(expr_to_string(result._0.value)); // 显示结果
                             }
-                            multilineBuffer = '';
                         } catch (e: unknown) {
                             term.writeln(`${RED}${e}${RESET}`);
-                            multilineBuffer = '';
                         }
 
                         if (inputBuffer) {
@@ -231,9 +287,11 @@ onMounted(() => {
                         parenCount = 0; // 重置圆括号计数
                         writePrompt(); // 重新显示提示符
                     } else {
-                        // 括号未闭合，继续多行输入
-                        multilineBuffer += (multilineBuffer ? '\n' : '') + inputBuffer;
-                        multilinePrompt();
+                        // 检查是否需要切换到多行编辑器
+                        if (!checkMultilineInput()) {
+                            // 如果没有切换到多行编辑器，显示提示符
+                            writePrompt();
+                        }
                     }
                     break;
                 case '\x7f': // Backspace key
@@ -250,22 +308,11 @@ onMounted(() => {
                         }
 
                         refreshLine(); // Refresh the current line to reflect the updated input
-                    } else if (cursorPosition === 0 && multilineBuffer.length > 0) {
-                        // 当前行开头且有多行缓冲区时，将光标移到上一行末尾
-                        const lines = multilineBuffer.split('\n');
-                        if (lines.length > 0) {
-                            const lastLine = lines.pop() || '';
-                            multilineBuffer = lines.join('\n');
-                            inputBuffer = lastLine + inputBuffer;
-                            cursorPosition = lastLine.length;
-                            refreshLine();
-                        }
                     }
                     break;
                 case '\x03': // Ctrl + C
                     term.write('\r\n'); // 换行
                     inputBuffer = ''; // 清空输入缓冲区
-                    multilineBuffer = ''; // 清空多行缓冲区
                     cursorPosition = 0; // 重置光标位置
                     bracketCount = 0; // 重置括号计数
                     parenCount = 0; // 重置圆括号计数
@@ -281,16 +328,6 @@ onMounted(() => {
                             term.write('\x1b[D\x1b[D'); // Move cursor 2 positions left for wide chars
                         } else {
                             term.write('\x1b[D'); // Move cursor 1 position left for regular chars
-                        }
-                    } else if (cursorPosition === 0 && multilineBuffer.length > 0) {
-                        // 当前行开头且有多行缓冲区时，将光标移到上一行末尾
-                        const lines = multilineBuffer.split('\n');
-                        if (lines.length > 0) {
-                            const lastLine = lines.pop() || '';
-                            multilineBuffer = lines.join('\n');
-                            inputBuffer = lastLine + inputBuffer;
-                            cursorPosition = lastLine.length;
-                            refreshLine();
                         }
                     }
                     break;
@@ -346,12 +383,68 @@ onMounted(() => {
             }
         });
 
+        // 多行编辑器功能定义
+        executeMultilineCode = () => {
+            const code = multilineCode.value.trim();
+            if (!code) {
+                showMultilineEditor.value = false;
+                return;
+            }
+
+            // 在终端显示执行的代码
+            term.writeln(`${GREEN}❯ ${RESET}${code.replace(/\n/g, `\n${GREEN}| ${RESET}`)}`);
+
+            try {
+                const result = eval_mb(vm, code, false, false);
+                if (result._0.value) {
+                    term.writeln(expr_to_string(result._0.value));
+                }
+            } catch (e: unknown) {
+                term.writeln(`${RED}${e}${RESET}`);
+            }
+
+            // 添加到历史记录
+            if (code) {
+                history.push(code);
+                historyIndex = history.length;
+            }
+
+            // 关闭编辑器并重置
+            showMultilineEditor.value = false;
+            multilineCode.value = '';
+            destroyEditor();
+            writePrompt();
+        };
+
+        cancelMultilineEditor = () => {
+            showMultilineEditor.value = false;
+            multilineCode.value = '';
+            destroyEditor();
+            writePrompt();
+        };
+
+        // 处理textarea的键盘事件
+        handleTextareaKeydown = (event: KeyboardEvent) => {
+            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
+                event.preventDefault();
+                executeMultilineCode();
+            } else if (event.key === 'Escape') {
+                event.preventDefault();
+                cancelMultilineEditor();
+            }
+        };
+
         // term.onKey(e => {
         //     const key = e.key;
 
         // });
     }
 });
+
+// 多行编辑器功能（需要在 onMounted 内部定义以访问局部变量）
+let executeMultilineCode: () => void;
+let cancelMultilineEditor: () => void;
+let handleTextareaKeydown: (event: KeyboardEvent) => void;
 
 onBeforeUnmount(() => {
     // 清理事件监听器
@@ -360,12 +453,68 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-    <!-- Bind the ref to the terminal div -->
-    <div ref="terminalRef" class="w-screen h-screen">
+    <div class="w-screen h-screen flex">
+        <!-- Terminal 区域 -->
+        <div :class="showMultilineEditor ? 'w-1/2' : 'w-full'" class="transition-all duration-300">
+            <div ref="terminalRef" class="w-full h-full"></div>
+        </div>
 
+        <!-- 多行编辑器区域 -->
+        <div v-if="showMultilineEditor"
+            class="z-10 w-1/2 bg-gray-900 border-l border-gray-600 flex flex-col transition-all duration-300">
+            <!-- 编辑器标题栏 -->
+            <div class="flex justify-between items-center p-4 border-b border-gray-600 bg-gray-800">
+                <h3 class="text-green-400 text-lg font-mono font-semibold flex items-center">
+                    <span class="text-green-400 mr-2">❯</span>
+                    多行代码编辑器
+                </h3>
+                <div class="flex gap-3">
+                    <button @click="executeMultilineCode"
+                        class="px-3 py-1.5 bg-transparent border border-green-500 text-green-400 rounded font-mono text-xs hover:bg-green-500 hover:text-gray-900 transition-all duration-200 shadow-lg hover:shadow-green-500/25 active:scale-95"
+                        title="Ctrl/Cmd + Enter">
+                        <span class="flex items-center gap-1.5">
+                            <span>▶</span>
+                            执行
+                        </span>
+                    </button>
+                    <button @click="cancelMultilineEditor"
+                        class="px-3 py-1.5 bg-transparent border border-red-500 text-red-400 rounded font-mono text-xs hover:bg-red-500 hover:text-gray-900 transition-all duration-200 shadow-lg hover:shadow-red-500/25 active:scale-95"
+                        title="Esc">
+                        <span class="flex items-center gap-1.5">
+                            <span>✕</span>
+                            关闭
+                        </span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- 编辑器内容区域 -->
+            <div class="flex-1 flex flex-col p-4">
+                <!-- 代码编辑器 -->
+                <div class="flex-1 relative">
+                    <div ref="editorRef"
+                        class="absolute inset-0 bg-gray-800 border border-gray-500 rounded overflow-hidden focus-within:border-green-400 focus-within:ring-1 focus-within:ring-green-400/30 transition-all duration-200">
+                        <!-- CodeMirror 编辑器将在这里初始化 -->
+                    </div>
+                </div>
+
+                <!-- 底部提示 -->
+                <div class="mt-4 text-xs text-gray-300 font-mono flex items-center gap-3">
+                    <span class="text-yellow-400">💡</span>
+                    <kbd
+                        class="px-2 py-1 bg-gray-700 border border-gray-500 text-green-400 rounded text-xs font-mono shadow-sm">Ctrl/Cmd
+                        + Enter</kbd>
+                    <span class="text-gray-400">执行</span>
+                    <kbd
+                        class="px-2 py-1 bg-gray-700 border border-gray-500 text-red-400 rounded text-xs font-mono shadow-sm">Esc</kbd>
+                    <span class="text-gray-400">关闭</span>
+                </div>
+            </div>
+        </div>
     </div>
+
     <a href="https://github.com/oboard/moonrepl" target="_blank"
-        class="fixed top-4 right-8 text-white hover:text-gray-300 active:text-gray-500">
+        class="fixed top-4 right-8 text-white hover:text-gray-300 active:text-gray-500 z-40">
         <svg width="24px" height="24px" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd"
                 d="M16 0C7.16 0 0 7.3411 0 16.4047C0 23.6638 4.58 29.795 10.94 31.9687C11.74 32.1122 12.04 31.6201 12.04 31.1894C12.04 30.7998 12.02 29.508 12.02 28.1341C8 28.8928 6.96 27.1293 6.64 26.2065C6.46 25.7349 5.68 24.279 5 23.8893C4.44 23.5818 3.64 22.823 4.98 22.8025C6.24 22.782 7.14 23.9919 7.44 24.484C8.88 26.9652 11.18 26.268 12.1 25.8374C12.24 24.7711 12.66 24.0534 13.12 23.6433C9.56 23.2332 5.84 21.8183 5.84 15.5435C5.84 13.7594 6.46 12.283 7.48 11.1347C7.32 10.7246 6.76 9.04309 7.64 6.78745C7.64 6.78745 8.98 6.35682 12.04 8.46893C13.32 8.09982 14.68 7.91527 16.04 7.91527C17.4 7.91527 18.76 8.09982 20.04 8.46893C23.1 6.33632 24.44 6.78745 24.44 6.78745C25.32 9.04309 24.76 10.7246 24.6 11.1347C25.62 12.283 26.24 13.7389 26.24 15.5435C26.24 21.8388 22.5 23.2332 18.94 23.6433C19.52 24.1559 20.02 25.1402 20.02 26.6781C20.02 28.8723 20 30.6358 20 31.1894C20 31.6201 20.3 32.1327 21.1 31.9687C27.42 29.795 32 23.6433 32 16.4047C32 7.3411 24.84 0 16 0Z"
@@ -377,5 +526,109 @@ onBeforeUnmount(() => {
 <style>
 .terminal {
     padding: 1rem;
+}
+
+/* 多行编辑器样式 */
+.editor-container {
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+
+/* CodeMirror 编辑器样式 */
+.cm-editor {
+    height: 100% !important;
+}
+
+.cm-scroller {
+    font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, Courier, monospace !important;
+    font-size: 0.875rem !important;
+    line-height: 1.25rem !important;
+}
+
+.cm-focused {
+    outline: none !important;
+}
+
+.highlight-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: transparent;
+    font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    overflow: hidden;
+    pointer-events: none;
+    z-index: 1;
+}
+
+.multiline-textarea {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    padding: 1rem;
+    margin: 0;
+    border: none;
+    background: transparent;
+    color: #d1fae5;
+    font-family: 'Courier New', Consolas, 'Liberation Mono', Menlo, Courier, monospace;
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    resize: none;
+    outline: none;
+    z-index: 2;
+    caret-color: #4ade80;
+}
+
+.multiline-textarea::placeholder {
+    color: #6b7280;
+}
+
+/* 语法高亮样式 */
+.highlight-layer .hljs-keyword {
+    color: #c678dd;
+    font-weight: bold;
+}
+
+.highlight-layer .hljs-string {
+    color: #98c379;
+}
+
+.highlight-layer .hljs-number {
+    color: #d19a66;
+}
+
+.highlight-layer .hljs-comment {
+    color: #5c6370;
+    font-style: italic;
+}
+
+.highlight-layer .hljs-function {
+    color: #61afef;
+}
+
+.highlight-layer .hljs-variable {
+    color: #e06c75;
+}
+
+.highlight-layer .hljs-operator {
+    color: #56b6c2;
+}
+
+.highlight-layer .hljs-punctuation {
+    color: #abb2bf;
 }
 </style>
