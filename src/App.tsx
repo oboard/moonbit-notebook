@@ -28,9 +28,22 @@ function App() {
   // MoonBit 解释器
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   const moonbitEvalRef = useRef<{ interpreter: any } | null>(null);
+  const activeCellDataRef = useRef(activeCellData);
+  const addCellOutputRef = useRef(addCellOutput);
+
+  // 保持引用最新
+  useEffect(() => {
+    activeCellDataRef.current = activeCellData;
+    addCellOutputRef.current = addCellOutput;
+  }, [activeCellData, addCellOutput]);
 
   // 初始化 MoonBit 解释器
   const initMoonBit = useCallback(async () => {
+    // 防止重复初始化
+    if (moonbitEvalRef.current) {
+      return;
+    }
+
     try {
       moonbitEvalRef.current = await create(false);
       if (moonbitEvalRef.current) {
@@ -38,10 +51,11 @@ function App() {
           // 提取实际的字符串内容
           const message = content._0._0._0;
 
-          // 使用当前活动的cell数据
-          if (activeCellData && activeCellData.cell_type === 'code') {
+          // 使用 ref 获取最新的 activeCellData，避免闭包陷阱
+          const currentActiveCellData = activeCellDataRef.current;
+          if (currentActiveCellData && currentActiveCellData.cell_type === 'code') {
             // 添加print输出到当前cell
-            addCellOutput(activeCellData.id, {
+            addCellOutputRef.current(currentActiveCellData.id, {
               output_type: 'stream',
               name: 'stdout',
               text: [`${message}\n`]
@@ -55,7 +69,7 @@ function App() {
     } catch (error: unknown) {
       console.error('MoonBit 解释器初始化失败:', error);
     }
-  }, [addCellOutput, activeCellData]);
+  }, []); // 空依赖数组，确保只初始化一次
 
   // 文件操作
   const handleNewNotebook = () => {
