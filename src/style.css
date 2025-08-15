@@ -54,20 +54,3 @@ body {
   background-color: black;
   overflow: hidden;
 }
-
-/* CodeMirror 编辑器样式 */
-.cm-editor {
-  width: 100% !important;
-}
-
-.cm-scroller {
-  width: 100% !important;
-  height: 100% !important;
-  min-height: 300px;
-  max-height: 500px;
-}
-
-.cm-content {
-  width: 100% !important;
-  min-height: 100% !important;
-}

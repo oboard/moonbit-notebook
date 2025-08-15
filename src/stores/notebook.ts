@@ -105,98 +105,101 @@ interface NotebookStore extends NotebookState {
   getActiveCellData: () => NotebookCell | undefined;
 }
 
-export const useNotebookStore = create<NotebookStore>((set, get) => ({
-  // 初始状态
-  notebook: createEmptyNotebook(),
-  activeCell: null,
-  executionCount: 0,
-  isDirty: false,
-  filePath: null,
-  
-  // 基础操作
-  dispatch: (operation: CellOperation) => {
-    set((state) => reducer(state, operation));
-  },
-  
-  // Cell操作
-  addCell: (type: 'code' | 'markdown', index?: number) => {
-    get().dispatch({ type: 'ADD_CELL', cellType: type, index });
-  },
-  
-  deleteCell: (cellId: string) => {
-    get().dispatch({ type: 'DELETE_CELL', cellId });
-  },
-  
-  moveCell: (cellId: string, newIndex: number) => {
-    get().dispatch({ type: 'MOVE_CELL', cellId, newIndex });
-  },
-  
-  updateCell: (cellId: string, source: string[]) => {
-    get().dispatch({ type: 'UPDATE_CELL', cellId, source });
-  },
-  
-  executeCell: (cellId: string) => {
-    get().dispatch({ type: 'EXECUTE_CELL', cellId });
-  },
-  
-  setActiveCell: (cellId: string | null) => {
-    get().dispatch({ type: 'SET_ACTIVE_CELL', cellId });
-  },
-  
-  // Cell输出操作
-  addCellOutput: (cellId: string, output: CellOutput) => {
-    set((state) => {
-      const cells = [...state.notebook.cells];
-      const index = cells.findIndex(cell => cell.id === cellId);
-      if (index !== -1 && cells[index].cell_type === 'code') {
-        const cell = { ...cells[index] };
-        cell.outputs = [...(cell.outputs || []), output];
-        cells[index] = cell;
-        return {
-          ...state,
-          notebook: { ...state.notebook, cells }
-        };
-      }
-      return state;
-    });
-  },
-  
-  clearCellOutput: (cellId: string) => {
-    set((state) => {
-      const cells = [...state.notebook.cells];
-      const index = cells.findIndex(cell => cell.id === cellId);
-      if (index !== -1 && cells[index].cell_type === 'code') {
-        cells[index] = { ...cells[index], outputs: [] };
-        return {
-          ...state,
-          notebook: { ...state.notebook, cells }
-        };
-      }
-      return state;
-    });
-  },
-  
-  // Notebook操作
-  loadNotebook: (notebook: Notebook, filePath?: string) => {
-    set({
-      notebook,
-      activeCell: notebook.cells[0]?.id || null,
-      executionCount: 0,
-      isDirty: false,
-      filePath: filePath || null
-    });
-  },
-  
-  newNotebook: () => {
-    get().loadNotebook(createEmptyNotebook());
-  },
-  
-  // 计算属性
-  getActiveCellData: () => {
-    const state = get();
-    return state.notebook.cells.find(cell => cell.id === state.activeCell);
-  }
-}));
+export const useNotebookStore = create<NotebookStore>((set, get) => {
+  const initialNotebook = createEmptyNotebook();
+  return {
+    // 初始状态
+    notebook: initialNotebook,
+    activeCell: initialNotebook.cells[0]?.id || null,
+    executionCount: 0,
+    isDirty: false,
+    filePath: null,
+    
+    // 基础操作
+    dispatch: (operation: CellOperation) => {
+      set((state) => reducer(state, operation));
+    },
+    
+    // Cell操作
+    addCell: (type: 'code' | 'markdown', index?: number) => {
+      get().dispatch({ type: 'ADD_CELL', cellType: type, index });
+    },
+    
+    deleteCell: (cellId: string) => {
+      get().dispatch({ type: 'DELETE_CELL', cellId });
+    },
+    
+    moveCell: (cellId: string, newIndex: number) => {
+      get().dispatch({ type: 'MOVE_CELL', cellId, newIndex });
+    },
+    
+    updateCell: (cellId: string, source: string[]) => {
+      get().dispatch({ type: 'UPDATE_CELL', cellId, source });
+    },
+    
+    executeCell: (cellId: string) => {
+      get().dispatch({ type: 'EXECUTE_CELL', cellId });
+    },
+    
+    setActiveCell: (cellId: string | null) => {
+      get().dispatch({ type: 'SET_ACTIVE_CELL', cellId });
+    },
+    
+    // Cell输出操作
+    addCellOutput: (cellId: string, output: CellOutput) => {
+      set((state) => {
+        const cells = [...state.notebook.cells];
+        const index = cells.findIndex(cell => cell.id === cellId);
+        if (index !== -1 && cells[index].cell_type === 'code') {
+          const cell = { ...cells[index] };
+          cell.outputs = [...(cell.outputs || []), output];
+          cells[index] = cell;
+          return {
+            ...state,
+            notebook: { ...state.notebook, cells }
+          };
+        }
+        return state;
+      });
+    },
+    
+    clearCellOutput: (cellId: string) => {
+      set((state) => {
+        const cells = [...state.notebook.cells];
+        const index = cells.findIndex(cell => cell.id === cellId);
+        if (index !== -1 && cells[index].cell_type === 'code') {
+          cells[index] = { ...cells[index], outputs: [] };
+          return {
+            ...state,
+            notebook: { ...state.notebook, cells }
+          };
+        }
+        return state;
+      });
+    },
+    
+    // Notebook操作
+    loadNotebook: (notebook: Notebook, filePath?: string) => {
+      set({
+        notebook,
+        activeCell: notebook.cells[0]?.id || null,
+        executionCount: 0,
+        isDirty: false,
+        filePath: filePath || null
+      });
+    },
+    
+    newNotebook: () => {
+      get().loadNotebook(createEmptyNotebook());
+    },
+    
+    // 计算属性
+    getActiveCellData: () => {
+      const state = get();
+      return state.notebook.cells.find(cell => cell.id === state.activeCell);
+    }
+  };
+});
 
 // 兼容性导出 - 保持与Vue版本相同的API
 export const useNotebook = () => {

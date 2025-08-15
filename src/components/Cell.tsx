@@ -1,16 +1,5 @@
-import { useRef, useEffect, useState, useCallback } from 'react';
-import { EditorView, basicSetup } from 'codemirror';
-import { EditorState } from '@codemirror/state';
-import { useTheme } from '../contexts/ThemeContext';
-import { keymap } from '@codemirror/view';
-import { defaultKeymap, historyKeymap } from '@codemirror/commands';
-import { foldKeymap } from '@codemirror/language';
-import { history } from '@codemirror/commands';
-import { lineNumbers, highlightActiveLineGutter, drawSelection, dropCursor, rectangularSelection, crosshairCursor, highlightSpecialChars } from '@codemirror/view';
-import { foldGutter } from '@codemirror/language';
-import { search, highlightSelectionMatches } from '@codemirror/search';
-import { EditorState as ES } from '@codemirror/state';
-import { indentOnInput, bracketMatching } from '@codemirror/language';
+import { useEffect, useState, useCallback } from 'react';
+import Editor from '@monaco-editor/react';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@radix-ui/themes';
 import {
@@ -23,9 +12,82 @@ import {
 } from 'lucide-react';
 import type { NotebookCell as CellType, CellOutput } from '../types/notebook';
 import clsx from 'clsx';
+import { registerMoonbitLanguage, getMonacoLanguage, applyMoonbitTheme } from '../utils/moonbitLanguage';
 
-// 临时的 moonbit 语言支持（需要后续实现）
-const moonbit = () => [];
+// Monaco Editor 语言映射
+// MoonBit 语言注册（仅注册一次）
+let moonbitRegistered = false;
+const ensureMoonbitLanguage = () => {
+  if (!moonbitRegistered) {
+    registerMoonbitLanguage();
+    moonbitRegistered = true;
+  }
+};
+
+// 安全的 Markdown 渲染组件
+const MarkdownRenderer: React.FC<{ content: string; onClick: () => void }> = ({ content, onClick }) => {
+  const renderContent = (): React.ReactNode[] => {
+    return content
+      .split('\n')
+      .map((line, index) => {
+        const key = `line-${index}-${line.substring(0, 20)}`; // 使用内容片段作为 key
+        
+        if (line.startsWith('### ')) {
+          return <h3 key={key} className="text-lg font-semibold mt-4 mb-2">{line.slice(4)}</h3>;
+        }
+        if (line.startsWith('## ')) {
+          return <h2 key={key} className="text-xl font-semibold mt-4 mb-2">{line.slice(3)}</h2>;
+        }
+        if (line.startsWith('# ')) {
+          return <h1 key={key} className="text-2xl font-bold mt-4 mb-2">{line.slice(2)}</h1>;
+        }
+
+        // 处理内联格式
+        const processInlineFormatting = (text: string): React.ReactNode => {
+          const parts: React.ReactNode[] = [];
+
+          // 简单的粗体和斜体处理
+          const boldRegex = /\*\*(.*?)\*\*/g;
+
+          let match: RegExpExecArray | null;
+          let lastIndex = 0;
+
+          // 处理粗体
+          match = boldRegex.exec(text);
+          while (match !== null) {
+            if (match.index > lastIndex) {
+              parts.push(text.slice(lastIndex, match.index));
+            }
+            parts.push(<strong key={`bold-${match.index}`}>{match[1]}</strong>);
+            lastIndex = match.index + match[0].length;
+            match = boldRegex.exec(text);
+          }
+
+          if (lastIndex < text.length) {
+            parts.push(text.slice(lastIndex));
+          }
+
+          return parts.length > 0 ? parts : text;
+        };
+
+        return (
+          <p key={key} className="mb-2">
+            {processInlineFormatting(line)}
+          </p>
+        );
+      });
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onClick}
+      className="w-full p-4 min-h-[60px] cursor-text prose max-w-none focus:outline-none focus:ring-2 focus:ring-blue-300 text-left bg-transparent border-none"
+    >
+      {renderContent()}
+    </button>
+  );
+};
 
 interface CellProps {
   cell: CellType;
@@ -54,90 +116,55 @@ export const Cell: React.FC<CellProps> = ({
   onAddCellAfter,
   onDelete
 }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const editorViewRef = useRef<EditorView | null>(null);
   const [isMarkdownEditing, setIsMarkdownEditing] = useState(false);
+  const [editorValue, setEditorValue] = useState(() => {
+    return Array.isArray(cell.source) ? cell.source.join('\n') : cell.source || '';
+  });
+
+  // 计算编辑器高度
+  const calculateEditorHeight = useCallback(() => {
+    const lines = editorValue.split('\n').length;
+    const minHeight = 60; // 最小高度
+    const lineHeight = 20; // 每行高度
+    const padding = 20; // 上下内边距
+    const maxHeight = 400; // 最大高度
+    
+    const calculatedHeight = Math.max(minHeight, Math.min(maxHeight, lines * lineHeight + padding));
+    return calculatedHeight;
+  }, [editorValue]);
 
   const isCodeCell = cell.cell_type === 'code';
   const isMarkdownCell = cell.cell_type === 'markdown';
-
-  // 使用全局主题
-  const { currentTheme } = useTheme();
-
-  // 初始化编辑器
-  const initEditor = useCallback(async () => {
-    if (!editorRef.current || editorViewRef.current) return;
-
-    const sourceText = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source || '';
-
-    const state = EditorState.create({
-      doc: sourceText,
-      extensions: [
-        basicSetup,
-        lineNumbers(),
-        highlightActiveLineGutter(),
-        highlightSpecialChars(),
-        history(),
-        foldGutter(),
-        drawSelection(),
-        dropCursor(),
-        ES.allowMultipleSelections.of(true),
-        indentOnInput(),
-        bracketMatching(),
-        rectangularSelection(),
-        crosshairCursor(),
-        search(),
-        highlightSelectionMatches(),
-        keymap.of([
-          ...defaultKeymap,
-          ...historyKeymap,
-          ...foldKeymap
-        ]),
-        moonbit(),
-        currentTheme,
-
-        EditorView.updateListener.of((update) => {
-          if (update.docChanged) {
-            const sourceText = update.state.doc.toString();
-            onUpdate({ source: sourceText.split('\n') });
-          }
-        }),
-        EditorView.domEventHandlers({
-          keydown: (event) => {
-            if (event.key === 'Enter' && (event.ctrlKey || event.metaKey)) {
-              event.preventDefault();
-              onExecute();
-              return true;
-            }
-            if (event.key === 'Escape') {
-              event.preventDefault();
-              if (isMarkdownCell) {
-                stopMarkdownEditing();
-              }
-              return true;
-            }
-            return false;
-          }
-        })
-      ]
-    });
-
-    editorViewRef.current = new EditorView({
-      state,
-      parent: editorRef.current
-    });
-
-    // 聚焦编辑器
-    editorViewRef.current.focus();
-  }, [cell.source, onUpdate, onExecute, isMarkdownCell, currentTheme]);
-
-  // 销毁编辑器
-  const destroyEditor = useCallback(() => {
-    if (editorViewRef.current) {
-      editorViewRef.current.destroy();
-      editorViewRef.current = null;
-    }
+  // 获取 Monaco 主题
+  const getMonacoTheme = useCallback(() => {
+    // 这里可以根据 currentTheme 返回对应的 Monaco 主题
+    return 'vs-dark'; // 默认使用暗色主题，后续可以根据实际主题切换
   }, []);
+
+  // 处理编辑器值变化
+  const handleEditorChange = useCallback((value: string | undefined) => {
+    const newValue = value || '';
+    setEditorValue(newValue);
+    onUpdate({ source: newValue.split('\n') });
+  }, [onUpdate]);
+
+  // 处理编辑器键盘事件
+  const handleEditorKeyDown = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) {
+      e.preventDefault();
+      if (isCodeCell) {
+        onExecute();
+      } else if (isMarkdownCell) {
+        stopMarkdownEditing();
+      }
+    }
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      if (isMarkdownCell) {
+        stopMarkdownEditing();
+      }
+    }
+  }, [isCodeCell, isMarkdownCell, onExecute]);
 
   // 开始 Markdown 编辑
   const startMarkdownEditing = useCallback(() => {
@@ -153,10 +180,7 @@ export const Cell: React.FC<CellProps> = ({
   // 处理点击
   const handleClick = useCallback(() => {
     onClick();
-    if (isMarkdownCell && !isMarkdownEditing) {
-      startMarkdownEditing();
-    }
-  }, [onClick, isMarkdownCell, isMarkdownEditing, startMarkdownEditing]);
+  }, [onClick]);
 
   // 处理执行
   const handleExecute = useCallback((e: React.MouseEvent) => {
@@ -191,22 +215,13 @@ export const Cell: React.FC<CellProps> = ({
     }
   }, [stopMarkdownEditing]);
 
-  // 初始化代码编辑器
+  // 同步编辑器值与 cell.source
   useEffect(() => {
-    if (isCodeCell && isActive) {
-      // 使用 setTimeout 确保 DOM 更新完成
-      setTimeout(() => {
-        initEditor();
-      }, 0);
+    const sourceText = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source || '';
+    if (sourceText !== editorValue) {
+      setEditorValue(sourceText);
     }
-  }, [isCodeCell, isActive, initEditor]);
-
-  // 清理编辑器
-  useEffect(() => {
-    return () => {
-      destroyEditor();
-    };
-  }, [destroyEditor]);
+  }, [cell.source, editorValue]);
 
   return (
     <div
@@ -224,10 +239,7 @@ export const Cell: React.FC<CellProps> = ({
       <div className="cell-header flex items-center justify-between px-3 py-2 border-b border-gray-200 rounded-t-lg">
         {/* 左侧信息 */}
         <div className="flex items-center space-x-2">
-          <span className={`
-            text-xs px-2 py-1 rounded font-mono
-            ${isCodeCell ? 'bg-bg-purple text-text-purple' : 'bg-bg-orange text-text-orange'}
-          `}>
+          <span className={"text-xs px-2 py-1 rounded font-mono bg-base-100 text-primary"}>
             {isCodeCell ? 'Code' : 'Markdown'}
           </span>
           {isCodeCell && cell.execution_count && (
@@ -325,43 +337,108 @@ export const Cell: React.FC<CellProps> = ({
       </div>
 
       {/* Cell 内容 */}
-      <div className="cell-content flex-1 min-h-[300px]">
-        {/* 代码编辑器 */}
+      <div className="cell-content flex-1">
+        {/* 代码单元格 - 始终显示 Monaco 编辑器 */}
         {isCodeCell && (
-          <div
-            ref={editorRef}
-            className="w-full font-mono text-sm"
-          />
+          <div className="w-full" style={{ height: `${calculateEditorHeight()}px` }}>
+            <Editor
+              height="100%"
+              language={getMonacoLanguage(cell.cell_type)}
+              value={editorValue}
+              defaultLanguage='moonbit'
+              onChange={handleEditorChange}
+              theme={getMonacoTheme()}
+              onMount={(editor, monaco) => {
+                // 确保 MoonBit 语言已注册
+                ensureMoonbitLanguage();
+                
+                // 应用 MoonBit 主题
+                applyMoonbitTheme();
+                
+                // 强制设置语言
+                if (cell.cell_type === 'code') {
+                  const model = editor.getModel();
+                  if (model) {
+                    monaco.editor.setModelLanguage(model, 'moonbit');
+                    console.log('✅ 编辑器语言已设置为 moonbit');
+                  }
+                }
+              }}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                lineNumbers: 'on',
+                wordWrap: 'on',
+                automaticLayout: true,
+                tabSize: 2,
+                insertSpaces: true,
+                // 关闭语法检查和错误提示
+                'semanticHighlighting.enabled': false,
+                quickSuggestions: false,
+                parameterHints: { enabled: false },
+                suggestOnTriggerCharacters: false,
+                acceptSuggestionOnEnter: 'off',
+                tabCompletion: 'off',
+                wordBasedSuggestions: 'off',
+                // 关闭所有语言服务
+                hover: { enabled: false },
+                links: false,
+                colorDecorators: false
+              }}
+            />
+          </div>
         )}
 
-        {/* Markdown 编辑器 */}
-        {isMarkdownCell && (
-          <div>
-            {isMarkdownEditing ? (
-              <textarea
-                value={Array.isArray(cell.source) ? cell.source.join('\n') : cell.source}
-                onChange={handleMarkdownInput}
-                onBlur={stopMarkdownEditing}
-                onKeyDown={handleMarkdownKeyDown}
-                className="w-full p-4 border-none outline-none resize-none min-h-[100px] font-sans"
-                placeholder="输入 Markdown 内容..."
-              />
-            ) : (
-              <Button
-                onClick={startMarkdownEditing}
-                variant="ghost"
-                className="w-full p-4 min-h-[60px] cursor-text prose max-w-none text-left h-auto"
-              >
-                {cell.source && (Array.isArray(cell.source) ? cell.source.join('') : cell.source) ? (
-                  <div>
-                    {Array.isArray(cell.source) ? cell.source.join('\n') : cell.source}
-                  </div>
-                ) : (
-                  <em className="text-gray-400">点击编辑 Markdown...</em>
-                )}
-              </Button>
-            )}
+        {/* Markdown 单元格 - 编辑模式 */}
+        {isMarkdownCell && isMarkdownEditing && (
+          <div className="w-full" style={{ height: `${calculateEditorHeight()}px` }}>
+            <Editor
+              height="100%"
+              language={getMonacoLanguage(cell.cell_type)}
+              value={editorValue}
+              onChange={handleEditorChange}
+              theme={getMonacoTheme()}
+              onMount={(editor, monaco) => {
+                ensureMoonbitLanguage();
+                // 强制刷新语法高亮
+                if (cell.cell_type === 'markdown') {
+                  const model = editor.getModel();
+                  if (model) {
+                    monaco.editor.setModelLanguage(model, 'markdown');
+                  }
+                }
+              }}
+              options={{
+                minimap: { enabled: false },
+                scrollBeyondLastLine: false,
+                fontSize: 14,
+                lineNumbers: 'on',
+                wordWrap: 'on',
+                automaticLayout: true,
+                tabSize: 2,
+                insertSpaces: true
+              }}
+            />
           </div>
+        )}
+
+        {/* Markdown 单元格 - 渲染视图 */}
+        {isMarkdownCell && !isMarkdownEditing && (
+          cell.source && (Array.isArray(cell.source) ? cell.source.join('') : cell.source) ? (
+            <MarkdownRenderer
+              content={Array.isArray(cell.source) ? cell.source.join('\n') : cell.source}
+              onClick={startMarkdownEditing}
+            />
+          ) : (
+            <button
+              type="button"
+              onClick={startMarkdownEditing}
+              className="w-full p-4 min-h-[60px] cursor-text prose max-w-none focus:outline-none focus:ring-2 focus:ring-blue-300 text-left bg-transparent border-none"
+            >
+              <em className="text-gray-400">点击编辑 Markdown...</em>
+            </button>
+          )
         )}
       </div>
 

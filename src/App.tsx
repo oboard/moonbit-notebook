@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { create } from './interpreter/moonbit-eval';
+import { create, eval as eval_mb, add_extern_fn, expr_to_string } from './interpreter/moonbit-eval';
 import type { NotebookCell } from './types/notebook';
 import { useNotebook } from './stores/notebook';
 import { fileService } from './services/fileService';
@@ -21,21 +21,42 @@ function App() {
     addCellOutput,
     clearCellOutput,
     loadNotebook,
-    newNotebook
+    newNotebook,
+    activeCellData
   } = useNotebook();
 
   // MoonBit 解释器
-  const moonbitEvalRef = useRef<{ eval: (code: string) => string } | null>(null);
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+    const moonbitEvalRef = useRef<{ interpreter: any } | null>(null);
 
   // 初始化 MoonBit 解释器
   const initMoonBit = useCallback(async () => {
     try {
       moonbitEvalRef.current = await create(false);
+      if (moonbitEvalRef.current) {
+        add_extern_fn(moonbitEvalRef.current.interpreter, "print", (content: { _0: { _0: { _0: string } } }) => {
+          // 提取实际的字符串内容
+          const message = content._0._0._0;
+
+          // 使用当前活动的cell数据
+          if (activeCellData && activeCellData.cell_type === 'code') {
+            // 添加print输出到当前cell
+            addCellOutput(activeCellData.id, {
+              output_type: 'stream',
+              name: 'stdout',
+              text: [`${message}\n`]
+            });
+          } else {
+            // 如果没有活动cell，输出到控制台
+            console.log(message);
+          }
+        })
+      }
       console.log('MoonBit 解释器初始化成功');
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('MoonBit 解释器初始化失败:', error);
     }
-  }, []);
+  }, [addCellOutput, activeCellData]);
 
   // 文件操作
   const handleNewNotebook = () => {
@@ -102,14 +123,14 @@ function App() {
 
       // 执行代码
       const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
-      const result = moonbitEvalRef.current.eval(code);
-
+      const result = eval_mb(moonbitEvalRef.current, code, false, false);
+      console.log(result);
       // 添加输出
       addCellOutput(cellId, {
         output_type: 'execute_result',
         execution_count: 1,
         data: {
-          'text/plain': result
+          'text/plain': expr_to_string(result._0.value)
         },
         metadata: {}
       });
@@ -145,9 +166,9 @@ function App() {
     }
   };
 
-  const handleAddCellAtIndex = (type: 'code' | 'markdown', index?: number) => {
-    addCell(type, index);
-  };
+  // const handleAddCellAtIndex = (type: 'code' | 'markdown', index?: number) => {
+  //   addCell(type, index);
+  // };
 
   const handleSetActiveCell = (cellId: string) => {
     setActiveCell(cellId);
