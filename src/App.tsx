@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { create, eval as eval_mb, add_extern_fn, expr_to_string } from './interpreter/moonbit-eval';
+import { create, eval as eval_mb, add_extern_fn, eval_result_to_string } from './interpreter/moonbit-eval.js';
 import type { NotebookCell } from './types/notebook';
 import { useNotebook } from './stores/notebook';
 import { fileService } from './services/fileService';
@@ -18,7 +18,6 @@ function App() {
     moveCell,
     updateCell,
     updateCellMetadata,
-    executeCell,
     setActiveCell,
     addCellOutput,
     clearCellOutput,
@@ -50,7 +49,7 @@ function App() {
     }
 
     try {
-      moonbitEvalRef.current = await create(false);
+      moonbitEvalRef.current = await create(false, true);
       if (moonbitEvalRef.current) {
         add_extern_fn(moonbitEvalRef.current.interpreter, "println", (content: { _0: { _0: { _0: string } } }) => {
           // 提取实际的字符串内容
@@ -144,18 +143,15 @@ function App() {
     try {
       // 开始执行状态
       startCellExecution(cellId);
-      
+
       // 清除之前的输出
       clearCellOutput(cellId);
 
       // 执行代码并计时
       const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
       const startTime = new Date().toISOString();
-      const perfStart = performance.now();
       const result = eval_mb(moonbitEvalRef.current, code, false, false);
-      const perfEnd = performance.now();
       const endTime = new Date().toISOString();
-      const executionTime = perfEnd - perfStart;
 
       // 更新cell的metadata中的ExecuteTime
       updateCellMetadata(cellId, {
@@ -172,12 +168,12 @@ function App() {
           output_type: 'execute_result',
           execution_count: 1,
           data: {
-            'text/plain': expr_to_string(result._0.value)
+            'text/plain': eval_result_to_string(result._0)
           },
           metadata: {}
         });
       }
-      
+
     } catch (error) {
       // 添加错误输出
       addCellOutput(cellId, {

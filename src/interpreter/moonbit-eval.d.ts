@@ -5,10 +5,11 @@ export function eval(self: any,
                      log: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>,
                      top$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): MoonBit.Result<any, any>;
 
-export function create(log$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): any;
+export function create(log$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>,
+                       core$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): any;
 
 export function add_extern_fn(self: any,
                               name: MoonBit.String,
                               f: (_arg0: any) => any): MoonBit.Unit;
 
-export function expr_to_string(expr: any): MoonBit.String;
+export function eval_result_to_string(result: any): MoonBit.String;

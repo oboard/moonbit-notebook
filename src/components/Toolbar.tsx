@@ -1,12 +1,12 @@
 import * as Toolbar from '@radix-ui/react-toolbar';
 import { Button } from '@radix-ui/themes';
-import { FileIcon, FolderOpenIcon, SaveIcon, CopyIcon, PlusIcon } from 'lucide-react';
+import { FileIcon, FolderOpenIcon, SaveIcon, CopyIcon, PlayIcon } from 'lucide-react';
 
 interface NotebookToolbarProps {
   currentFilePath: string | null;
   canSave: boolean;
   onNewNotebook: () => void;
-  onOpenNotebook: () => void;
+  onOpenNotebook: () => void; 
   onSaveNotebook: () => void;
   onSaveAsNotebook: () => void;
   onAddCell: (type: 'code' | 'markdown') => void;
@@ -20,7 +20,6 @@ export function NotebookToolbar({
   onOpenNotebook,
   onSaveNotebook,
   onSaveAsNotebook,
-  onAddCell,
   onRunAll
 }: NotebookToolbarProps) {
   return (
@@ -86,6 +85,7 @@ export function NotebookToolbar({
           size="2"
           title="Run All Cells"
         >
+          <PlayIcon className="w-4 h-4" />
           Run All
         </Button>
       </div>

@@ -11,18 +11,12 @@ importers:
       '@babel/runtime':
         specifier: ^7.28.3
         version: 7.28.3
-      '@codemirror/lang-javascript':
-        specifier: ^6.2.4
-        version: 6.2.4
-      '@codemirror/search':
-        specifier: ^6.5.11
-        version: 6.5.11
-      '@codemirror/theme-one-dark':
-        specifier: ^6.1.3
-        version: 6.1.3
       '@lezer/highlight':
         specifier: ^1.2.1
         version: 1.2.1
+      '@moonbit/analyzer':
+        specifier: ^0.1.202508072
+        version: 0.1.202508072
       '@radix-ui/colors':
         specifier: ^3.0.0
         version: 3.0.0
@@ -38,9 +32,6 @@ importers:
       '@radix-ui/themes':
         specifier: ^3.2.1
         version: 3.2.1(@types/react-dom@19.1.7(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
-      '@uiw/codemirror-theme-github':
-        specifier: ^4.25.1
-        version: 4.25.1(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)
       '@xterm/addon-fit':
         specifier: ^0.10.0
         version: 0.10.0(@xterm/xterm@5.5.0)
@@ -48,8 +39,8 @@ importers:
         specifier: ^5.5.0
         version: 5.5.0
       chalk:
-        specifier: ^5.5.0
-        version: 5.5.0
+        specifier: ^5.6.0
+        version: 5.6.0
       chevrotain:
         specifier: ^11.0.3
         version: 11.0.3
@@ -270,30 +261,6 @@ packages:
 
   '@chevrotain/utils@11.0.3':
     resolution: {integrity: sha512-YslZMgtJUyuMbZ+aKvfF3x1f5liK4mWNxghFRv7jqRR9C3R3fAOGTTKvxXDa2Y1s9zSbcpuO0cAxDYsc9SrXoQ==}
-
-  '@codemirror/autocomplete@6.18.6':
-    resolution: {integrity: sha512-PHHBXFomUs5DF+9tCOM/UoW6XQ4R44lLNNhRaW9PKPTU0D7lIjRg3ElxaJnTwsl/oHiR93WSXDBrekhoUGCPtg==}
-
-  '@codemirror/lang-javascript@6.2.4':
-    resolution: {integrity: sha512-0WVmhp1QOqZ4Rt6GlVGwKJN3KW7Xh4H2q8ZZNGZaP6lRdxXJzmjm4FqvmOojVj6khWJHIb9sp7U/72W7xQgqAA==}
-
-  '@codemirror/language@6.11.3':
-    resolution: {integrity: sha512-9HBM2XnwDj7fnu0551HkGdrUrrqmYq/WC5iv6nbY2WdicXdGbhR/gfbZOH73Aqj4351alY1+aoG9rCNfiwS1RA==}
-
-  '@codemirror/lint@6.8.5':
-    resolution: {integrity: sha512-s3n3KisH7dx3vsoeGMxsbRAgKe4O1vbrnKBClm99PU0fWxmxsx5rR2PfqQgIt+2MMJBHbiJ5rfIdLYfB9NNvsA==}
-
-  '@codemirror/search@6.5.11':
-    resolution: {integrity: sha512-KmWepDE6jUdL6n8cAAqIpRmLPBZ5ZKnicE8oGU/s3QrAVID+0VhLFrzUucVKHG5035/BSykhExDL/Xm7dHthiA==}
-
-  '@codemirror/state@6.5.2':
-    resolution: {integrity: sha512-FVqsPqtPWKVVL3dPSxy8wEF/ymIEuVzF1PK3VbUgrxXpJUSHQWWZz4JMToquRxnkw+36LTamCZG2iua2Ptq0fA==}
-
-  '@codemirror/theme-one-dark@6.1.3':
-    resolution: {integrity: sha512-NzBdIvEJmx6fjeremiGp3t/okrLPYT0d9orIc7AFun8oZcRk58aejkqhv6spnz4MLAevrKNPMQYXEWMg4s+sKA==}
-
-  '@codemirror/view@6.38.1':
-    resolution: {integrity: sha512-RmTOkE7hRU3OVREqFVITWHz6ocgBjv08GoePscAakgVQfciA3SGCEk7mb9IzwW61cKKmlTpHXG6DUE5Ubx+MGQ==}
 
   '@esbuild/aix-ppc64@0.21.5':
     resolution: {integrity: sha512-1SDgH6ZSPTlggy1yI6+Dbkiz8xzpHJEVAlF/AM1tHPLsf5STom9rwtjE4hKAF20FfXXNTFqEYXyJNWh1GiZedQ==}
@@ -773,14 +740,8 @@ packages:
   '@lezer/highlight@1.2.1':
     resolution: {integrity: sha512-Z5duk4RN/3zuVO7Jq0pGLJ3qynpxUVsh7IbUbGj88+uV2ApSAn6kWg2au3iJb+0Zi7kKtqffIESgNcRXWZWmSA==}
 
-  '@lezer/javascript@1.5.1':
-    resolution: {integrity: sha512-ATOImjeVJuvgm3JQ/bpo2Tmv55HSScE2MTPnKRMRIPx2cLhHGyX2VnqpHhtIV1tVzIjZDbcWQm+NCTF40ggZVw==}
-
-  '@lezer/lr@1.4.2':
-    resolution: {integrity: sha512-pu0K1jCIdnQ12aWNaAVU5bzi7Bd1w54J3ECgANPmYLtQKP0HBj2cE/5coBD66MT10xbtIuUr7tg0Shbsvk0mDA==}
-
-  '@marijn/find-cluster-break@1.0.2':
-    resolution: {integrity: sha512-l0h88YhZFyKdXIFNfSWpyjStDjGHwZ/U7iobcK1cQQD8sejsONdQtTVU+1wVN1PBw40PiiHB1vA5S7VTfQiP9g==}
+  '@moonbit/analyzer@0.1.202508072':
+    resolution: {integrity: sha512-W/jEHaAhpQ923usJUw9TUrY4DiiIKatdODFTgbYCODS6OYgxZypilJrNDQnuTBzqbz0qS9H1yvbjfEQEJ7+uAA==}
 
   '@polka/url@1.0.0-next.29':
     resolution: {integrity: sha512-wwQAWhWSuHaag8c4q/KN/vCoeOJYshAIvMQwD4GpSb3OiZklFfvAgmj0VCBBImRpuF/aFgIRzllXlVX93Jevww==}
@@ -1637,16 +1598,6 @@ packages:
   '@types/react@19.1.10':
     resolution: {integrity: sha512-EhBeSYX0Y6ye8pNebpKrwFJq7BoQ8J5SO6NlvNwwHjSj6adXJViPQrKlsyPw7hLBLvckEMO1yxeGdR82YBBlDg==}
 
-  '@uiw/codemirror-theme-github@4.25.1':
-    resolution: {integrity: sha512-l70gUrYAxHlpMWmG8A/I4PN5h5zzPxV+c9pRtsw+VtdmdgVWMh3JaSsuFZlf6h311s+/WB2FMZKdFw5SwrFWaA==}
-
-  '@uiw/codemirror-themes@4.25.1':
-    resolution: {integrity: sha512-6o8tQ8bdq14RuVFpZ7l9u8KnuPq824uG3U1VV933Uhv8mfaxaoaOQSjv6T2bQUPhjH6ZlEu5+tAMkOfIL21eIQ==}
-    peerDependencies:
-      '@codemirror/language': '>=6.0.0'
-      '@codemirror/state': '>=6.0.0'
-      '@codemirror/view': '>=6.0.0'
-
   '@unocss/astro@0.62.4':
     resolution: {integrity: sha512-98KfkbrNhBLx2+uYxMiGsldIeIZ6/PbL4yaGRHeHoiHd7p4HmIyCF+auYe4Psntx3Yr8kU+XSIAhGDYebvTidQ==}
     peerDependencies:
@@ -1780,8 +1731,8 @@ packages:
   caniuse-lite@1.0.30001735:
     resolution: {integrity: sha512-EV/laoX7Wq2J9TQlyIXRxTJqIw4sxfXS4OYgudGxBYRuTv0q7AM6yMEpU/Vo1I94thg9U6EZ2NfZx9GJq83u7w==}
 
-  chalk@5.5.0:
-    resolution: {integrity: sha512-1tm8DTaJhPBG3bIkVeZt1iZM9GfSX2lzOeDVZH9R9ffRHpmHvxZ/QhgQH/aDTkswQVt+YHdXAdS/In/30OjCbg==}
+  chalk@5.6.0:
+    resolution: {integrity: sha512-46QrSQFyVSEyYAgQ22hQ+zDa60YHA4fBstHmtSApj1Y5vKtG27fWowW03jCk5KcbXEWPZUIR894aARCA/G1kfQ==}
     engines: {node: ^12.17.0 || ^14.13 || >=16.0.0}
 
   chevrotain@11.0.3:
@@ -1814,9 +1765,6 @@ packages:
   convert-source-map@2.0.0:
     resolution: {integrity: sha512-Kvp459HrV2FEJ1CAsi1Ku+MY3kasH19TFykTz2xWmMeq6bk2NU3XXvfJ+Q61m0xktWwt+1HSYf3JZsTms3aRJg==}
 
-  crelt@1.0.6:
-    resolution: {integrity: sha512-VQ2MBenTq1fWZUH9DJNGti7kKv6EeAuYr3cLwxUWhIu1baTaXh4Ib5W2CqHVqib4/MqbYGJqiL3Zb8GJZr3l4g==}
-
   css-tree@2.3.1:
     resolution: {integrity: sha512-6Fv1DV/TYw//QF5IzQdqsNDjx/wc8TrMBZsqjL9eW01tWb7R7k/mq+/VXfJCl7SoD5emsJop9cOByJZfs8hYIw==}
     engines: {node: ^10 || ^12.20.0 || ^14.13.0 || >=15.0.0}
@@ -1845,8 +1793,8 @@ packages:
   duplexer@0.1.2:
     resolution: {integrity: sha512-jtD6YG370ZCIi/9GTaJKQxWTZD045+4R4hTk/x1UyoqadyJ9x9CgSi1RlVDQF8U2sxLLSnFkCaMihqljHIWgMg==}
 
-  electron-to-chromium@1.5.202:
-    resolution: {integrity: sha512-NxbYjRmiHcHXV1Ws3fWUW+SLb62isauajk45LUJ/HgIOkUA7jLZu/X2Iif+X9FBNK8QkF9Zb4Q2mcwXCcY30mg==}
+  electron-to-chromium@1.5.203:
+    resolution: {integrity: sha512-uz4i0vLhfm6dLZWbz/iH88KNDV+ivj5+2SA+utpgjKaj9Q0iDLuwk6Idhe9BTxciHudyx6IvTvijhkPvFGUQ0g==}
 
   esbuild@0.21.5:
     resolution: {integrity: sha512-mg3OPMV4hXywwpoDxu3Qda5xCKQi+vCTZq8S9J/EpkhB2HzKXq4SNFZE3+NK93JYxc8VMSep+lOUSC/RVKaBqw==}
@@ -2051,8 +1999,8 @@ packages:
     resolution: {integrity: sha512-3Ybi1tAuwAP9s0r1UQ2J4n5Y0G05bJkpUIO0/bI9MhwmD70S5aTWbXGBwxHrelT+XM1k6dM0pk+SwNkpTRN7Pg==}
     engines: {node: ^10 || ^12 || >=14}
 
-  quansync@0.2.10:
-    resolution: {integrity: sha512-t41VRkMYbkHyCYmOvx/6URnN80H7k4X0lLdBMGsz+maAwrJQYB1djpV6vHrQIBE0WBSGqhtEHrK9U3DWWH8v7A==}
+  quansync@0.2.11:
+    resolution: {integrity: sha512-AifT7QEbW9Nri4tAwR5M/uzpBuqfZf+zwaEM/QkzEjj7NBuFD2rBuy0K3dE+8wltbezDV7JMA0WfnCPYRSYbXA==}
 
   radix-ui@1.4.3:
     resolution: {integrity: sha512-aWizCQiyeAenIdUbqEpXgRA1ya65P13NKn/W8rWkcN0OPkRDxdBVLWnIEDsS2RpwCK2nobI7oMUSmexzTDyAmA==}
@@ -2136,9 +2084,6 @@ packages:
   source-map-js@1.2.1:
     resolution: {integrity: sha512-UXWMKhLOwVKb728IUtQPXxfYU+usdybtUrK/8uGE8CQMvrhOpwvzDBwj0QhSL7MQc7vIsISBG8VQ8+IDQxpfQA==}
     engines: {node: '>=0.10.0'}
-
-  style-mod@4.1.2:
-    resolution: {integrity: sha512-wnD1HyVqpJUI2+eKZ+eo1UwghftP6yuFheBqqe+bWCotBjC2K1YnteJILRMs3SM4V/0dLEW1SC27MWP5y+mwmw==}
 
   tinyexec@1.0.1:
     resolution: {integrity: sha512-5uC6DDlmeqiOwCPmK9jMSdOuZTh8bU39Ys6yidB+UTt5hfZUPGAypSgFRiEp+jbi9qH40BLDvy85jIU88wKSqw==}
@@ -2247,9 +2192,6 @@ packages:
         optional: true
       terser:
         optional: true
-
-  w3c-keyname@2.2.8:
-    resolution: {integrity: sha512-dpojBhNsCNN7T82Tm7k26A6G9ML3NkhDsnw9n/eoxSRlVBB4CEtIQ/KTCLI2Fwf3ataSXRhYFkQi3SlnFwPvPQ==}
 
   yallist@3.1.1:
     resolution: {integrity: sha512-a4UGQaWPH59mOXUYnAG2ewncQS4i4F43Tv3JoAM+s2VDAmS9NsK8GpDMLrCHPksFT7h3K6TOoUNn2pb7RoXx4g==}
@@ -2453,62 +2395,6 @@ snapshots:
   '@chevrotain/types@11.0.3': {}
 
   '@chevrotain/utils@11.0.3': {}
-
-  '@codemirror/autocomplete@6.18.6':
-    dependencies:
-      '@codemirror/language': 6.11.3
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      '@lezer/common': 1.2.3
-
-  '@codemirror/lang-javascript@6.2.4':
-    dependencies:
-      '@codemirror/autocomplete': 6.18.6
-      '@codemirror/language': 6.11.3
-      '@codemirror/lint': 6.8.5
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      '@lezer/common': 1.2.3
-      '@lezer/javascript': 1.5.1
-
-  '@codemirror/language@6.11.3':
-    dependencies:
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      '@lezer/common': 1.2.3
-      '@lezer/highlight': 1.2.1
-      '@lezer/lr': 1.4.2
-      style-mod: 4.1.2
-
-  '@codemirror/lint@6.8.5':
-    dependencies:
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      crelt: 1.0.6
-
-  '@codemirror/search@6.5.11':
-    dependencies:
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      crelt: 1.0.6
-
-  '@codemirror/state@6.5.2':
-    dependencies:
-      '@marijn/find-cluster-break': 1.0.2
-
-  '@codemirror/theme-one-dark@6.1.3':
-    dependencies:
-      '@codemirror/language': 6.11.3
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-      '@lezer/highlight': 1.2.1
-
-  '@codemirror/view@6.38.1':
-    dependencies:
-      '@codemirror/state': 6.5.2
-      crelt: 1.0.6
-      style-mod: 4.1.2
-      w3c-keyname: 2.2.8
 
   '@esbuild/aix-ppc64@0.21.5':
     optional: true
@@ -2781,17 +2667,7 @@ snapshots:
     dependencies:
       '@lezer/common': 1.2.3
 
-  '@lezer/javascript@1.5.1':
-    dependencies:
-      '@lezer/common': 1.2.3
-      '@lezer/highlight': 1.2.1
-      '@lezer/lr': 1.4.2
-
-  '@lezer/lr@1.4.2':
-    dependencies:
-      '@lezer/common': 1.2.3
-
-  '@marijn/find-cluster-break@1.0.2': {}
+  '@moonbit/analyzer@0.1.202508072': {}
 
   '@polka/url@1.0.0-next.29': {}
 
@@ -3657,20 +3533,6 @@ snapshots:
     dependencies:
       csstype: 3.1.3
 
-  '@uiw/codemirror-theme-github@4.25.1(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)':
-    dependencies:
-      '@uiw/codemirror-themes': 4.25.1(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)
-    transitivePeerDependencies:
-      - '@codemirror/language'
-      - '@codemirror/state'
-      - '@codemirror/view'
-
-  '@uiw/codemirror-themes@4.25.1(@codemirror/language@6.11.3)(@codemirror/state@6.5.2)(@codemirror/view@6.38.1)':
-    dependencies:
-      '@codemirror/language': 6.11.3
-      '@codemirror/state': 6.5.2
-      '@codemirror/view': 6.38.1
-
   '@unocss/astro@0.62.4(rollup@4.46.2)(vite@5.4.19)':
     dependencies:
       '@unocss/core': 0.62.4
@@ -3855,7 +3717,7 @@ snapshots:
   browserslist@4.25.2:
     dependencies:
       caniuse-lite: 1.0.30001735
-      electron-to-chromium: 1.5.202
+      electron-to-chromium: 1.5.203
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.2)
 
@@ -3868,7 +3730,7 @@ snapshots:
 
   caniuse-lite@1.0.30001735: {}
 
-  chalk@5.5.0: {}
+  chalk@5.6.0: {}
 
   chevrotain@11.0.3:
     dependencies:
@@ -3905,8 +3767,6 @@ snapshots:
 
   convert-source-map@2.0.0: {}
 
-  crelt@1.0.6: {}
-
   css-tree@2.3.1:
     dependencies:
       mdn-data: 2.0.30
@@ -3926,7 +3786,7 @@ snapshots:
 
   duplexer@0.1.2: {}
 
-  electron-to-chromium@1.5.202: {}
+  electron-to-chromium@1.5.203: {}
 
   esbuild@0.21.5:
     optionalDependencies:
@@ -4087,7 +3947,7 @@ snapshots:
     dependencies:
       mlly: 1.7.4
       pkg-types: 2.2.0
-      quansync: 0.2.10
+      quansync: 0.2.11
 
   lodash-es@4.17.21: {}
 
@@ -4166,7 +4026,7 @@ snapshots:
       picocolors: 1.1.1
       source-map-js: 1.2.1
 
-  quansync@0.2.10: {}
+  quansync@0.2.11: {}
 
   radix-ui@1.4.3(@types/react-dom@19.1.7(@types/react@19.1.10))(@types/react@19.1.10)(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
     dependencies:
@@ -4311,8 +4171,6 @@ snapshots:
 
   source-map-js@1.2.1: {}
 
-  style-mod@4.1.2: {}
-
   tinyexec@1.0.1: {}
 
   tinyglobby@0.2.14:
@@ -4405,8 +4263,6 @@ snapshots:
       rollup: 4.46.2
     optionalDependencies:
       fsevents: 2.3.3
-
-  w3c-keyname@2.2.8: {}
 
   yallist@3.1.1: {}
 

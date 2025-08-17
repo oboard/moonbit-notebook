@@ -1,9 +1,7 @@
 import { createContext, useContext, useState, useEffect, type ReactNode } from 'react';
-import { githubLight, githubDark } from '@uiw/codemirror-theme-github';
 
 interface ThemeContextType {
   isDark: boolean;
-  currentTheme: typeof githubLight | typeof githubDark;
   toggleTheme: () => void;
 }
 
@@ -15,7 +13,7 @@ interface ThemeProviderProps {
 
 export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   // 检测暗色模式偏好
-  const [isDark, setIsDark] = useState(() => 
+  const [isDark, setIsDark] = useState(() =>
     window.matchMedia('(prefers-color-scheme: dark)').matches
   );
 
@@ -23,13 +21,10 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
   useEffect(() => {
     const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
     const handleChange = (e: MediaQueryListEvent) => setIsDark(e.matches);
-    
+
     mediaQuery.addEventListener('change', handleChange);
     return () => mediaQuery.removeEventListener('change', handleChange);
   }, []);
-
-  // 计算当前应该使用的主题
-  const currentTheme = isDark ? githubDark : githubLight;
 
   // 手动切换主题（可选功能）
   const toggleTheme = () => {
@@ -48,7 +43,6 @@ export const ThemeProvider: React.FC<ThemeProviderProps> = ({ children }) => {
 
   const value = {
     isDark,
-    currentTheme,
     toggleTheme
   };
 

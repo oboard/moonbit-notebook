@@ -63,7 +63,7 @@ export interface NotebookState {
 }
 
 // Cell操作类型
-export type CellOperation = 
+export type CellOperation =
   | { type: 'ADD_CELL'; cellType: 'code' | 'markdown'; index?: number }
   | { type: 'DELETE_CELL'; cellId: string }
   | { type: 'MOVE_CELL'; cellId: string; newIndex: number }
