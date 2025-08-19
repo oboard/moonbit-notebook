@@ -30,7 +30,7 @@ const MOONBIT_FILE_TYPES = [
 // 文件服务类
 export class FileService {
   private currentFileHandle: FileSystemFileHandle | null = null;
-  
+
   // 打开notebook文件
   async openNotebook(): Promise<{ notebook: Notebook; filePath: string } | null> {
     if (!isFileAccessSupported()) {

@@ -1,5 +1,7 @@
-import { useEffect, useState, useCallback, useRef } from 'react';
-import * as monaco from 'monaco-editor';
+import { useEffect, useState, useCallback } from 'react';
+
+import CodeEditor from './CodeEditor';
+import XTermOutput from './XTermOutput';
 import * as DropdownMenu from '@radix-ui/react-dropdown-menu';
 import { Button } from '@radix-ui/themes';
 import {
@@ -13,7 +15,7 @@ import {
 } from 'lucide-react';
 import type { NotebookCell as CellType, CellOutput } from '../types/notebook';
 import clsx from 'clsx';
-import { registerMoonbitLanguage } from '../utils/moonbitLanguage';
+import ReactJson from 'react-json-view'
 
 // 安全的 Markdown 渲染组件
 const MarkdownRenderer: React.FC<{ content: string; onClick: () => void }> = ({ content, onClick }) => {
@@ -95,90 +97,6 @@ interface CellProps {
   onDelete: () => void;
 }
 
-// 原生 Monaco 编辑器组件
-interface CodeEditorProps {
-  value: string;
-  onChange: (value: string) => void;
-  height: number;
-  language: string;
-
-}
-
-const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height }) => {
-  const editorRef = useRef<HTMLDivElement>(null);
-  const editorInstanceRef = useRef<monaco.editor.IStandaloneCodeEditor | null>(null);
-  const isInitialized = useRef(false);
-  const onChangeRef = useRef(onChange);
-
-  // 保持 onChange 引用最新
-  useEffect(() => {
-    onChangeRef.current = onChange;
-  }, [onChange]);
-
-  // 初始化编辑器（只执行一次）
-  useEffect(() => {
-    if (!editorRef.current || isInitialized.current) return;
-
-    // 注册 MoonBit 语言
-    registerMoonbitLanguage();
-
-    // 创建编辑器实例
-    const editor = monaco.editor.create(editorRef.current, {
-      value: '',
-      language: 'moonbit',
-      theme: 'vs-dark',
-      minimap: { enabled: false },
-      scrollBeyondLastLine: false,
-      fontSize: 14,
-      lineNumbers: 'on',
-      wordWrap: 'on',
-      automaticLayout: true,
-      tabSize: 2,
-      insertSpaces: true,
-      'semanticHighlighting.enabled': false,
-      quickSuggestions: false,
-      parameterHints: { enabled: false },
-      suggestOnTriggerCharacters: false,
-      acceptSuggestionOnEnter: 'off',
-      tabCompletion: 'off',
-      wordBasedSuggestions: 'off',
-      hover: { enabled: false },
-      links: false,
-      colorDecorators: false
-    });
-
-    editorInstanceRef.current = editor;
-    isInitialized.current = true;
-
-    // 监听内容变化
-    const disposable = editor.onDidChangeModelContent(() => {
-      const newValue = editor.getValue();
-      onChangeRef.current(newValue);
-    });
-
-    return () => {
-      disposable.dispose();
-      editor.dispose();
-      isInitialized.current = false;
-    };
-  }, []); // 空依赖数组，只初始化一次
-
-  // 更新编辑器值
-  useEffect(() => {
-    if (editorInstanceRef.current && editorInstanceRef.current.getValue() !== value) {
-      editorInstanceRef.current.setValue(value);
-    }
-  }, [value]);
-
-  // 更新编辑器高度
-  useEffect(() => {
-    if (editorInstanceRef.current) {
-      editorInstanceRef.current.layout({ width: 0, height });
-    }
-  }, [height]);
-
-  return <div ref={editorRef} style={{ width: '100%', height: `${height}px` }} />;
-};
 
 export const Cell: React.FC<CellProps> = ({
   cell,
@@ -292,7 +210,7 @@ export const Cell: React.FC<CellProps> = ({
               )}
             </Button>
           )}
-          
+
           {/* 执行时间显示 */}
           {isCodeCell && cell.metadata?.ExecuteTime && (
             <span className="text-xs text-gray-500 font-mono">
@@ -302,98 +220,98 @@ export const Cell: React.FC<CellProps> = ({
                 const endTime = new Date(executeTime.end_time).getTime();
                 const duration = endTime - startTime;
                 return `${duration.toFixed(2)}ms`;
-              })()} 
+              })()}
             </span>
           )}
-          
+
           {isCodeCell && cell.execution_count && (
             <span className="text-xs text-gray-500 font-mono">
               [{cell.execution_count}]
             </span>
           )}
         </div>
-        
+
         {/* 右侧：操作按钮 + Cell类型标签 */}
-         <div className="flex items-center space-x-2">
-           {/* 操作按钮 */}
-           <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
-          {/* 移动按钮 */}
-          <Button
-            onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
-            disabled={!canMoveUp}
-            size="1"
-            variant="ghost"
-            color="gray"
-            title="Move Up"
-          >
-            <ChevronUp className="w-4 h-4" />
-          </Button>
+        <div className="flex items-center space-x-2">
+          {/* 操作按钮 */}
+          <div className="flex items-center space-x-1 opacity-0 group-hover:opacity-100 transition-opacity">
+            {/* 移动按钮 */}
+            <Button
+              onClick={(e) => { e.stopPropagation(); onMoveUp(); }}
+              disabled={!canMoveUp}
+              size="1"
+              variant="ghost"
+              color="gray"
+              title="Move Up"
+            >
+              <ChevronUp className="w-4 h-4" />
+            </Button>
 
-          <Button
-            onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
-            disabled={!canMoveDown}
-            size="1"
-            variant="ghost"
-            color="gray"
-            title="Move Down"
-          >
-            <ChevronDown className="w-4 h-4" />
-          </Button>
+            <Button
+              onClick={(e) => { e.stopPropagation(); onMoveDown(); }}
+              disabled={!canMoveDown}
+              size="1"
+              variant="ghost"
+              color="gray"
+              title="Move Down"
+            >
+              <ChevronDown className="w-4 h-4" />
+            </Button>
 
-          {/* 更多操作下拉菜单 */}
-          <DropdownMenu.Root>
-            <DropdownMenu.Trigger asChild>
-              <Button
-                size="1"
-                variant="ghost"
-                color="gray"
-                title="More Actions"
-              >
-                <MoreHorizontal className="w-4 h-4" />
-              </Button>
-            </DropdownMenu.Trigger>
-
-            <DropdownMenu.Portal>
-              <DropdownMenu.Content
-                className="min-w-[160px] bg-base-100 rounded-md shadow-lg border border-gray-200 p-1 z-50"
-                sideOffset={5}
-              >
-                <DropdownMenu.Item
-                  onClick={() => onAddCellAfter('code')}
-                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-purple hover:text-text-purple rounded cursor-pointer focus:outline-none focus:bg-bg-purple"
+            {/* 更多操作下拉菜单 */}
+            <DropdownMenu.Root>
+              <DropdownMenu.Trigger asChild>
+                <Button
+                  size="1"
+                  variant="ghost"
+                  color="gray"
+                  title="More Actions"
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Code Cell
-                </DropdownMenu.Item>
+                  <MoreHorizontal className="w-4 h-4" />
+                </Button>
+              </DropdownMenu.Trigger>
 
-                <DropdownMenu.Item
-                  onClick={() => onAddCellAfter('markdown')}
-                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-orange hover:text-text-orange rounded cursor-pointer focus:outline-none focus:bg-bg-orange"
+              <DropdownMenu.Portal>
+                <DropdownMenu.Content
+                  className="min-w-[160px] bg-base-100 rounded-md shadow-lg border border-gray-200 p-1 z-50"
+                  sideOffset={5}
                 >
-                  <Plus className="w-4 h-4" />
-                  Add Markdown Cell
-                </DropdownMenu.Item>
+                  <DropdownMenu.Item
+                    onClick={() => onAddCellAfter('code')}
+                    className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-purple hover:text-text-purple rounded cursor-pointer focus:outline-none focus:bg-bg-purple"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Code Cell
+                  </DropdownMenu.Item>
 
-                <DropdownMenu.Separator className="h-px bg-border-secondary my-1" />
+                  <DropdownMenu.Item
+                    onClick={() => onAddCellAfter('markdown')}
+                    className="flex items-center gap-2 px-2 py-1.5 text-sm text-secondary hover:bg-bg-orange hover:text-text-orange rounded cursor-pointer focus:outline-none focus:bg-bg-orange"
+                  >
+                    <Plus className="w-4 h-4" />
+                    Add Markdown Cell
+                  </DropdownMenu.Item>
 
-                <DropdownMenu.Item
-                  onClick={onDelete}
-                  className="flex items-center gap-2 px-2 py-1.5 text-sm text-text-error hover:bg-bg-error rounded cursor-pointer focus:outline-none focus:bg-bg-error"
-                >
-                  <Trash2 className="w-4 h-4" />
-                  Delete Cell
-                </DropdownMenu.Item>
-              </DropdownMenu.Content>
-            </DropdownMenu.Portal>
-          </DropdownMenu.Root>
-           </div>
-           
-           {/* Cell类型标签 */}
-           <span className={"text-xs px-2 py-1 rounded font-mono bg-base-100 text-primary"}>
-             {isCodeCell ? 'Code' : 'Markdown'}
-           </span>
-         </div>
-       </div>
+                  <DropdownMenu.Separator className="h-px bg-border-secondary my-1" />
+
+                  <DropdownMenu.Item
+                    onClick={onDelete}
+                    className="flex items-center gap-2 px-2 py-1.5 text-sm text-text-error hover:bg-bg-error rounded cursor-pointer focus:outline-none focus:bg-bg-error"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                    Delete Cell
+                  </DropdownMenu.Item>
+                </DropdownMenu.Content>
+              </DropdownMenu.Portal>
+            </DropdownMenu.Root>
+          </div>
+
+          {/* Cell类型标签 */}
+          <span className={"text-xs px-2 py-1 rounded font-mono bg-base-100 text-primary"}>
+            {isCodeCell ? 'Code' : 'Markdown'}
+          </span>
+        </div>
+      </div>
 
       {/* Cell 内容 */}
       <div className="cell-content flex-1">
@@ -441,16 +359,30 @@ export const Cell: React.FC<CellProps> = ({
         <div className="cell-outputs border-t border-gray-200">
           {cell.outputs.map((output: CellOutput, index: number) => {
             const outputId = `${cell.id}-output-${output.output_type}-${index}`;
+            if (output.data?.['application/json'] !== undefined) {
+              const json = JSON.parse(output.data?.['application/json']?.toString() || '{}');
+              const isValid = (typeof json) === "object" && json !== null;
+              if (isValid) {
+                return (
+                  <ReactJson
+                    src={json}
+                    theme="railscasts"
+                    style={{ padding: "16px" }}
+                    key={outputId}
+                    displayDataTypes={false}
+                    enableClipboard={true}
+                    name={false}
+                    indentWidth={2}
+                  />
+                );
+              }
+            }
             return (
-              <div
+              <XTermOutput
                 key={outputId}
-                className={`
-                  px-4 py-2 font-mono text-sm whitespace-pre-wrap
-                  ${output.output_type === 'error' ? 'bg-bg-error text-text-error' : 'bg-base-200 text-primary'}
-                `}
-              >
-                {renderOutput(output)}
-              </div>
+                content={renderOutput(output)}
+                outputType={output.output_type}
+              />
             );
           })}
         </div>
