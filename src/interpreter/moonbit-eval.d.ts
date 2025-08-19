@@ -8,8 +8,8 @@ export function eval(self: any,
 export function create(log$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>,
                        core$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): any;
 
-export function add_extern_fn(self: any,
+export function add_extern_fn(vm: any,
                               name: MoonBit.String,
-                              f: (_arg0: any) => any): MoonBit.Unit;
+                              func: (_arg0: any) => any): MoonBit.Unit;
 
 export function eval_result_to_string(result: any): MoonBit.String;

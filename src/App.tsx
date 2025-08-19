@@ -1,5 +1,5 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { create, eval as eval_mb, add_extern_fn, eval_result_to_string } from './interpreter/moonbit-eval.js';
+import { create, eval as eval_mb, add_extern_fn, eval_result_to_string } from './interpreter/moonbit-eval';
 import type { NotebookCell } from './types/notebook';
 import { useNotebook } from './stores/notebook';
 import { fileService } from './services/fileService';
@@ -51,7 +51,7 @@ function App() {
     try {
       moonbitEvalRef.current = await create(false, true);
       if (moonbitEvalRef.current) {
-        add_extern_fn(moonbitEvalRef.current.interpreter, "println", (content: { _0: { _0: { _0: string } } }) => {
+        add_extern_fn(moonbitEvalRef.current, "println", (content: { _0: { _0: { _0: string } } }) => {
           // 提取实际的字符串内容
           const message = content._0._0._0;
 
