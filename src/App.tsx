@@ -27,7 +27,6 @@ function App() {
     startCellExecution,
     stopCellExecution,
     isCellExecuting,
-    getAbortController
   } = useNotebook();
 
   // WebWorker
