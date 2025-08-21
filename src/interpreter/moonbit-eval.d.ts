@@ -5,15 +5,15 @@ export function stop(vm: any): MoonBit.Unit;
 export function add_embedded_method(vm: any,
                                     name: MoonBit.String,
                                     method_name: MoonBit.String,
-                                    func: (_arg0: any) => any): MoonBit.Unit;
+                                    func: (_arg0: any) => MoonBit.Result<any, any>): MoonBit.Unit;
 
 export function add_embedded_fn(vm: any,
                                 name: MoonBit.String,
-                                func: (_arg0: any) => any): MoonBit.Unit;
+                                func: (_arg0: any) => MoonBit.Result<any, any>): MoonBit.Unit;
 
 export function add_extern_fn(vm: any,
                               name: MoonBit.String,
-                              func: (_arg0: any) => any): MoonBit.Unit;
+                              func: (_arg0: any) => MoonBit.Result<any, any>): MoonBit.Unit;
 
 export function eval_result_to_string(result: any): MoonBit.String;
 
