@@ -51,21 +51,9 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height, langua
             wordBasedSuggestions: 'off',
             hover: { enabled: false },
             links: false,
-            colorDecorators: false,
-            // 换行符处理配置
-            renderWhitespace: 'boundary',
-            renderControlCharacters: true,
-            detectIndentation: false,
-            trimAutoWhitespace: true,
-            // 统一换行符处理
-            model: null // 将在后面设置模型时指定换行符
+            colorDecorators: false
         });
 
-        // 创建模型并设置统一换行符
-        const model = monaco.editor.createModel('', language, monaco.Uri.parse('inmemory://model.mbt'));
-        model.setEOL(monaco.editor.EndOfLineSequence.LF); // 统一使用 LF (\n)
-        editor.setModel(model);
-        
         editorInstanceRef.current = editor;
         isInitialized.current = true;
 
@@ -77,10 +65,6 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height, langua
 
         return () => {
             disposable.dispose();
-            const currentModel = editor.getModel();
-            if (currentModel) {
-                currentModel.dispose();
-            }
             editor.dispose();
             isInitialized.current = false;
         };

@@ -85,12 +85,20 @@ const reducer = (currentState: NotebookState, operation: CellOperation): Noteboo
     case 'START_CELL_EXECUTION': {
       newState.executingCells = new Set(newState.executingCells);
       newState.executingCells.add(operation.cellId);
+      newState.abortControllers = new Map(newState.abortControllers);
+      newState.abortControllers.set(operation.cellId, new AbortController());
       break;
     }
     
     case 'STOP_CELL_EXECUTION': {
       newState.executingCells = new Set(newState.executingCells);
       newState.executingCells.delete(operation.cellId);
+      newState.abortControllers = new Map(newState.abortControllers);
+      const controller = newState.abortControllers.get(operation.cellId);
+      if (controller) {
+        controller.abort();
+        newState.abortControllers.delete(operation.cellId);
+      }
       break;
     }
     
@@ -120,6 +128,7 @@ interface NotebookStore extends NotebookState {
   startCellExecution: (cellId: string) => void;
   stopCellExecution: (cellId: string) => void;
   isCellExecuting: (cellId: string) => boolean;
+  getAbortController: (cellId: string) => AbortController | undefined;
   
   // Cell输出操作
   addCellOutput: (cellId: string, output: CellOutput) => void;
@@ -143,6 +152,7 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
     isDirty: false,
     filePath: null,
     executingCells: new Set<string>(),
+    abortControllers: new Map<string, AbortController>(),
     
     // 基础操作
     dispatch: (operation: CellOperation) => {
@@ -191,6 +201,10 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
       return get().executingCells.has(cellId);
     },
     
+    getAbortController: (cellId: string) => {
+      return get().abortControllers.get(cellId);
+    },
+    
     // Cell输出操作
     addCellOutput: (cellId: string, output: CellOutput) => {
       set((state) => {
@@ -232,7 +246,8 @@ export const useNotebookStore = create<NotebookStore>((set, get) => {
         executionCount: 0,
         isDirty: false,
         filePath: filePath || null,
-        executingCells: new Set<string>()
+        executingCells: new Set<string>(),
+        abortControllers: new Map<string, AbortController>()
       });
     },
     
@@ -277,6 +292,7 @@ export const useNotebook = () => {
     // 执行状态管理
     startCellExecution: store.startCellExecution,
     stopCellExecution: store.stopCellExecution,
-    isCellExecuting: store.isCellExecuting
+    isCellExecuting: store.isCellExecuting,
+    getAbortController: store.getAbortController
   };
 };

@@ -36,7 +36,6 @@ export const XTermOutput: React.FC<XTermOutputProps> = ({ content, outputType })
       cursorBlink: false,
       cursorStyle: undefined,
       cursorInactiveStyle: "none",
-      cursorWidth: 0,
       allowProposedApi: true,
       fontSize: 13,
       fontFamily: 'ui-monospace, SFMono-Regular, "SF Mono", Consolas, "Liberation Mono", Menlo, monospace',

@@ -9,6 +9,7 @@ interface NotebookProps {
   activeCellId: string | null;
   onUpdateCell: (cellId: string, updates: Partial<NotebookCell>) => void;
   onExecuteCell: (cellId: string) => void;
+  onStopCell: (cellId: string) => void;
   onDeleteCell: (cellId: string) => void;
   onMoveCell: (cellId: string, direction: 'up' | 'down') => void;
   onAddCell: (type: 'code' | 'markdown', index?: number) => void;
@@ -21,6 +22,7 @@ export const Notebook: React.FC<NotebookProps> = ({
   activeCellId,
   onUpdateCell,
   onExecuteCell,
+  onStopCell,
   onDeleteCell,
   onMoveCell,
   onAddCell,
@@ -108,6 +110,7 @@ export const Notebook: React.FC<NotebookProps> = ({
                 onClick={() => handleCellClick(cell.id)}
                 onUpdate={(updates) => onUpdateCell(cell.id, updates)}
                 onExecute={() => onExecuteCell(cell.id)}
+                onStop={() => onStopCell(cell.id)}
                 onDelete={() => onDeleteCell(cell.id)}
                 onMoveUp={() => onMoveCell(cell.id, 'up')}
                 onMoveDown={() => onMoveCell(cell.id, 'down')}

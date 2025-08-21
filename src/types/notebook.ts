@@ -60,6 +60,7 @@ export interface NotebookState {
   isDirty: boolean;
   filePath: string | null;
   executingCells: Set<string>; // 正在执行的cell ID集合
+  abortControllers: Map<string, AbortController>; // 每个执行中cell的中断控制器
 }
 
 // Cell操作类型
