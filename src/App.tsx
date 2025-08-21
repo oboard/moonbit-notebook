@@ -1,10 +1,10 @@
 import { useRef, useEffect, useCallback } from 'react';
-import { create, eval as eval_mb, value_to_json, eval_result_to_string, add_embedded_fn, value_to_string } from './interpreter/moonbit-eval';
 import type { NotebookCell } from './types/notebook';
 import { useNotebook } from './stores/notebook';
 import { fileService } from './services/fileService';
 import Notebook from './components/Notebook';
 import { NotebookToolbar } from './components/Toolbar';
+import type { WorkerMessage, WorkerResponse } from './workers/moonbitWorker';
 
 function App() {
   // 使用 Notebook store
@@ -26,14 +26,15 @@ function App() {
     activeCellData,
     startCellExecution,
     stopCellExecution,
-    isCellExecuting
+    isCellExecuting,
+    getAbortController
   } = useNotebook();
 
-  // MoonBit 解释器
-  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-  const moonbitEvalRef = useRef<{ interpreter: any } | null>(null);
+  // WebWorker
+  const workerRef = useRef<Worker | null>(null);
   const activeCellDataRef = useRef(activeCellData);
   const addCellOutputRef = useRef(addCellOutput);
+  const pendingExecutions = useRef<Map<string, boolean>>(new Map());
 
   // 保持引用最新
   useEffect(() => {
@@ -41,43 +42,90 @@ function App() {
     addCellOutputRef.current = addCellOutput;
   }, [activeCellData, addCellOutput]);
 
-  // 初始化 MoonBit 解释器
-  const initMoonBit = useCallback(async () => {
+  // 初始化 WebWorker
+  const initWorker = useCallback(() => {
     // 防止重复初始化
-    if (moonbitEvalRef.current) {
+    if (workerRef.current) {
       return;
     }
 
     try {
-      moonbitEvalRef.current = await create(false, true);
-      if (moonbitEvalRef.current) {
-        add_embedded_fn(moonbitEvalRef.current, "%println_mono", (content: { arguments: { value: object }[] }) => {
-          console.log(content)
-          // 提取实际的字符串内容
-          const message = value_to_string(content.arguments[0].value);
+      // 创建WebWorker
+      workerRef.current = new Worker(
+        new URL('./workers/moonbitWorker.ts', import.meta.url),
+        { type: 'module' }
+      );
 
-          // 使用 ref 获取最新的 activeCellData，避免闭包陷阱
-          const currentActiveCellData = activeCellDataRef.current;
-          if (currentActiveCellData && currentActiveCellData.cell_type === 'code') {
-            // 添加print输出到当前cell
-            addCellOutputRef.current(currentActiveCellData.id, {
-              output_type: 'stream',
-              name: 'stdout',
-              text: [`${message}\n`]
+      // 监听Worker消息
+      workerRef.current.onmessage = (event: MessageEvent<WorkerResponse>) => {
+        const { type, id, data, error } = event.data;
+
+        console.log(data)
+        switch (type) {
+          case 'output':
+            if (data) {
+              // 添加输出
+              addCellOutput(id, {
+                output_type: 'stream',
+                name: 'stdout',
+                text: [data.stringValue]
+              });
+            }
+            break;
+          case 'result':
+            if (data) {
+              // 更新cell的metadata中的ExecuteTime
+              updateCellMetadata(id, {
+                ExecuteTime: {
+                  start_time: data.startTime,
+                  end_time: data.endTime
+                }
+              });
+
+              if (data.hasValue && data.jsonValue && data.stringValue) {
+                // 添加执行结果输出
+                addCellOutput(id, {
+                  output_type: 'execute_result',
+                  execution_count: 1,
+                  data: {
+                    'application/json': data.jsonValue,
+                    'text/plain': data.stringValue
+                  },
+                  metadata: {}
+                });
+              }
+            }
+            stopCellExecution(id);
+            pendingExecutions.current.delete(id);
+            break;
+
+          case 'error':
+            // 添加错误输出
+            addCellOutput(id, {
+              output_type: 'error',
+              ename: 'Error',
+              evalue: error || 'Unknown error',
+              traceback: [error || 'Unknown error']
             });
-          } else {
-            // 如果没有活动cell，输出到控制台
-            console.log(message);
-          }
-          return {
-            "$tag": 0
-          }
-        })
-      }
+            stopCellExecution(id);
+            pendingExecutions.current.delete(id);
+            break;
+
+          case 'aborted':
+            stopCellExecution(id);
+            pendingExecutions.current.delete(id);
+            break;
+        }
+      };
+
+      workerRef.current.onerror = (error) => {
+        console.error('WebWorker error:', error);
+      };
+
     } catch (error: unknown) {
-      console.error('MoonBit 解释器初始化失败:', error);
+      console.error('WebWorker 初始化失败:', error);
     }
-  }, []); // 空依赖数组，确保只初始化一次
+  }, [updateCellMetadata, addCellOutput, stopCellExecution]);
 
   // 文件操作
   const handleNewNotebook = () => {
@@ -136,7 +184,7 @@ function App() {
 
   const handleExecuteCell = async (cellId: string) => {
     const cell = notebook.cells.find((c: NotebookCell) => c.id === cellId);
-    if (!cell || cell.cell_type !== 'code' || !moonbitEvalRef.current) return;
+    if (!cell || cell.cell_type !== 'code' || !workerRef.current) return;
 
     // 如果正在执行，则停止执行
     if (isCellExecuting(cellId)) {
@@ -144,54 +192,35 @@ function App() {
       return;
     }
 
-    try {
-      // 开始执行状态
-      startCellExecution(cellId);
+    // 开始执行状态
+    startCellExecution(cellId);
+    pendingExecutions.current.set(cellId, true);
 
-      // 清除之前的输出
-      clearCellOutput(cellId);
+    // 清除之前的输出
+    clearCellOutput(cellId);
 
-      // 执行代码并计时
-      const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
-      const startTime = new Date().toISOString();
-      const result = eval_mb(moonbitEvalRef.current, code, false, false);
-      const endTime = new Date().toISOString();
+    // 发送执行消息到WebWorker
+    const code = Array.isArray(cell.source) ? cell.source.join('\n') : cell.source;
+    const message: WorkerMessage = {
+      type: 'execute',
+      id: cellId,
+      code
+    };
 
-      // 更新cell的metadata中的ExecuteTime
-      updateCellMetadata(cellId, {
-        ExecuteTime: {
-          start_time: startTime,
-          end_time: endTime
-        }
-      });
+    workerRef.current.postMessage(message);
+  };
 
-      console.log(result);
-      if (result._0.value) {
-        // 添加执行结果输出
-        addCellOutput(cellId, {
-          output_type: 'execute_result',
-          execution_count: 1,
-          data: {
-            'application/json': value_to_json(result._0.value),
-            'text/plain': eval_result_to_string(result._0)
-          },
-          metadata: {}
-        });
-      }
-
-    } catch (error) {
-      console.error(error)
-      // 添加错误输出
-      addCellOutput(cellId, {
-        output_type: 'error',
-        ename: 'Error',
-        evalue: String(error),
-        traceback: [String(error)]
-      });
-    } finally {
-      // 结束执行状态
-      stopCellExecution(cellId);
+  const handleStopCell = (cellId: string) => {
+    if (workerRef.current && pendingExecutions.current.has(cellId)) {
+      // 先尝试发送中断消息
+      const message: WorkerMessage = {
+        type: 'abort',
+        id: cellId
+      };
+      workerRef.current.postMessage(message);
     }
+    stopCellExecution(cellId);
+    pendingExecutions.current.delete(cellId);
   };
 
   const handleDeleteCell = (cellId: string) => {
@@ -232,8 +261,16 @@ function App() {
 
   // 初始化
   useEffect(() => {
-    initMoonBit();
-  }, [initMoonBit]);
+    initWorker();
+
+    // 清理函数
+    return () => {
+      if (workerRef.current) {
+        workerRef.current.terminate();
+        workerRef.current = null;
+      }
+    };
+  }, [initWorker]);
 
   return (
     <div id="app" className="h-screen flex flex-col bg-base-100">
@@ -256,6 +293,7 @@ function App() {
           activeCellId={activeCell}
           onUpdateCell={handleUpdateCell}
           onExecuteCell={handleExecuteCell}
+          onStopCell={handleStopCell}
           onDeleteCell={handleDeleteCell}
           onMoveCell={handleMoveCell}
           onAddCell={handleAddCell}

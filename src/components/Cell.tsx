@@ -90,6 +90,7 @@ interface CellProps {
   canMoveDown: boolean;
   onUpdate: (updates: Partial<CellType>) => void;
   onExecute: () => void;
+  onStop?: () => void;
   onClick: () => void;
   onMoveUp: () => void;
   onMoveDown: () => void;
@@ -106,6 +107,7 @@ export const Cell: React.FC<CellProps> = ({
   canMoveDown,
   onUpdate,
   onExecute,
+  onStop,
   onClick,
   onMoveUp,
   onMoveDown,
@@ -150,8 +152,12 @@ export const Cell: React.FC<CellProps> = ({
   // 处理执行
   const handleExecute = useCallback((e: React.MouseEvent) => {
     e.stopPropagation();
-    onExecute();
-  }, [onExecute]);
+    if (isExecuting && onStop) {
+      onStop();
+    } else {
+      onExecute();
+    }
+  }, [isExecuting, onExecute, onStop]);
 
   // 渲染输出
   const renderOutput = useCallback((output: CellOutput): string => {
@@ -357,34 +363,70 @@ export const Cell: React.FC<CellProps> = ({
       {/* Cell 输出 */}
       {isCodeCell && cell.outputs && cell.outputs.length > 0 && (
         <div className="cell-outputs border-t border-gray-200">
-          {cell.outputs.map((output: CellOutput, index: number) => {
-            const outputId = `${cell.id}-output-${output.output_type}-${index}`;
-            if (output.data?.['application/json'] !== undefined) {
-              const json = JSON.parse(output.data?.['application/json']?.toString() || '{}');
-              const isValid = (typeof json) === "object" && json !== null;
-              if (isValid) {
-                return (
-                  <ReactJson
-                    src={json}
-                    theme="railscasts"
-                    style={{ padding: "16px" }}
+          {(() => {
+            const groupedOutputs: React.ReactNode[] = [];
+            let currentStreamGroup: CellOutput[] = [];
+
+            const flushStreamGroup = () => {
+              if (currentStreamGroup.length > 0) {
+                const combinedContent = currentStreamGroup
+                  .map(output => renderOutput(output))
+                  .join('');
+                const groupId = `${cell.id}-stream-group-${groupedOutputs.length}`;
+                groupedOutputs.push(
+                  <XTermOutput
+                    key={groupId}
+                    content={combinedContent}
+                    outputType="stream"
+                  />
+                );
+                currentStreamGroup = [];
+              }
+            };
+
+            cell.outputs.forEach((output: CellOutput, index: number) => {
+              if (output.output_type === 'stream') {
+                currentStreamGroup.push(output);
+              } else {
+                // 先处理之前积累的stream输出
+                flushStreamGroup();
+
+                // 处理非stream输出
+                const outputId = `${cell.id}-output-${output.output_type}-${index}`;
+                if (output.data?.['application/json'] !== undefined) {
+                  const json = JSON.parse(output.data?.['application/json']?.toString() || '{}');
+                  const isValid = (typeof json) === "object" && json !== null;
+                  if (isValid) {
+                    groupedOutputs.push(
+                      <ReactJson
+                        src={json}
+                        theme="railscasts"
+                        style={{ padding: "16px" }}
+                        key={outputId}
+                        displayDataTypes={false}
+                        enableClipboard={true}
+                        name={false}
+                        indentWidth={2}
+                      />
+                    );
+                    return;
+                  }
+                }
+                groupedOutputs.push(
+                  <XTermOutput
                     key={outputId}
-                    displayDataTypes={false}
-                    enableClipboard={true}
-                    name={false}
-                    indentWidth={2}
+                    content={renderOutput(output)}
+                    outputType={output.output_type}
                   />
                 );
               }
-            }
-            return (
-              <XTermOutput
-                key={outputId}
-                content={renderOutput(output)}
-                outputType={output.output_type}
-              />
-            );
-          })}
+            });
+
+            // 处理最后剩余的stream输出
+            flushStreamGroup();
+
+            return groupedOutputs;
+          })()}
         </div>
       )}
     </div>
