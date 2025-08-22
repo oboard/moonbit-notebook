@@ -82,8 +82,8 @@ function executeCode(id: string, code: string) {
         }
       });
       return {
-        "$tag": 0,
-        "_0": { "$tag": 0, }
+        "$tag": 1, // Result::Ok
+        "_0": { "$tag": 0, value: { "$tag": 0 } },
       }
     });
     // 执行代码
