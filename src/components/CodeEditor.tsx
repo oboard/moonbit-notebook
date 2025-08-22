@@ -42,16 +42,16 @@ const CodeEditor: React.FC<CodeEditorProps> = ({ value, onChange, height, langua
             automaticLayout: true,
             tabSize: 2,
             insertSpaces: true,
-            'semanticHighlighting.enabled': false,
-            quickSuggestions: false,
-            parameterHints: { enabled: false },
-            suggestOnTriggerCharacters: false,
-            acceptSuggestionOnEnter: 'off',
-            tabCompletion: 'off',
-            wordBasedSuggestions: 'off',
-            hover: { enabled: false },
-            links: false,
-            colorDecorators: false
+            'semanticHighlighting.enabled': true,
+            quickSuggestions: true,
+            parameterHints: { enabled: true },
+            suggestOnTriggerCharacters: true,
+            acceptSuggestionOnEnter: 'smart',
+            tabCompletion: 'on',
+            wordBasedSuggestions: 'allDocuments',
+            hover: { enabled: true },
+            links: true,
+            colorDecorators: true
         });
 
         editorInstanceRef.current = editor;

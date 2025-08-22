@@ -1,0 +1,8 @@
+/* Monaco Editor styles for MoonBit */
+.monaco-editor {
+  font-family: 'Monaco', 'Menlo', 'Ubuntu Mono', monospace;
+}
+
+.monaco-editor .view-lines {
+  font-feature-settings: "liga" 0;
+}
