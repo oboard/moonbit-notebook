@@ -192,12 +192,12 @@ export const Cell: React.FC<CellProps> = ({
         'cell-container border flex flex-col rounded-lg overflow-hidden bg-base-300 shadow-sm transition-all duration-200 mb-4 group',
         {
           'border-blue-400 shadow-md': isActive,
-          'border-gray-200 hover:border-gray-300': !isActive
+          'border-base-200 hover:border-base-300': !isActive
         }
       )}
     >
       {/* Cell 头部 */}
-      <div className="cell-header flex items-center justify-between px-3 py-2 border-b border-gray-200 rounded-t-lg">
+      <div className="cell-header flex items-center justify-between px-3 py-2 border-b border-base-200 rounded-t-lg">
         {/* 左侧：执行按钮 + 执行时间 */}
         <div className="flex items-center space-x-2">
           {/* 执行按钮 - 最左侧 */}
@@ -362,7 +362,7 @@ export const Cell: React.FC<CellProps> = ({
 
       {/* Cell 输出 */}
       {isCodeCell && cell.outputs && cell.outputs.length > 0 && (
-        <div className="cell-outputs border-t border-gray-200">
+        <div className="cell-outputs border-t border-base-300">
           {(() => {
             const groupedOutputs: React.ReactNode[] = [];
             let currentStreamGroup: CellOutput[] = [];

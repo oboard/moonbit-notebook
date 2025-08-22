@@ -82,12 +82,13 @@ function executeCode(id: string, code: string) {
         }
       });
       return {
-        "$tag": 0
+        "$tag": 0,
+        "_0": { "$tag": 0, }
       }
     });
     // 执行代码
     const result = eval_mb(vm, code, false, false);
-
+    console.log(result)
     // 再次检查是否被中断
     if (abortFlags.get(id)) {
       sendResponse({ type: 'aborted', id });
@@ -121,7 +122,7 @@ function executeCode(id: string, code: string) {
     sendResponse({
       type: 'error',
       id,
-      error: String(error)
+      error: "executing code"
     });
   } finally {
     // 清理中断标志

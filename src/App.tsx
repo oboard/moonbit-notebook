@@ -104,7 +104,7 @@ function App() {
               output_type: 'error',
               ename: 'Error',
               evalue: error || 'Unknown error',
-              traceback: [error || 'Unknown error']
+              traceback: []
             });
             stopCellExecution(id);
             pendingExecutions.current.delete(id);

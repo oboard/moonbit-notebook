@@ -80,16 +80,15 @@ export const XTermOutput: React.FC<XTermOutputProps> = ({ content, outputType })
 
   return (
     <div
-      className={`bg-black border-t border-gray-200 ${outputType === 'error' ? 'bg-red-50' : 'bg-base-200'
-        }`}
-      style={{
-        minHeight: '24px',
-        overflow: 'hidden'
-      }}
+      className={'bg-black border-t border-gray-200'}
     >
       <div
         ref={terminalRef}
-        className="xterm-container px-4 py-2"
+        style={{
+          minHeight: '64px',
+          overflow: 'hidden'
+        }}
+        className="xterm-container px-4 pt-2"
       />
     </div>
   );
