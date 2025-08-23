@@ -69,7 +69,7 @@ const Footer: FC<FooterProps> = ({ className = '' }) => {
           {loading ? (
             <span>Loading...</span>
           ) : (
-            <span>  Last commit: {lastCommitTime}</span>
+            <span>  Last update: {lastCommitTime}</span>
           )}
         </div>
       </div>
