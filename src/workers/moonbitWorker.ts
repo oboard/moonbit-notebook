@@ -89,6 +89,9 @@ function executeCode(id: string, code: string) {
     // 执行代码
     const result = eval_mb(vm, code, false, false);
     console.log(result)
+    if (typeof result._0._0 === "string") {
+      throw new Error(result._0._0)
+    }
     // 再次检查是否被中断
     if (abortFlags.get(id)) {
       sendResponse({ type: 'aborted', id });
@@ -104,14 +107,14 @@ function executeCode(id: string, code: string) {
       data: {
         startTime,
         endTime,
-        hasValue: !!result._0.value,
-        jsonValue: result._0.value ? value_to_json(result._0.value) : null,
+        hasValue: !!result._0._0,
+        jsonValue: result._0._0 ? value_to_json(result._0._0) : null,
         stringValue: eval_result_to_string(result._0)
       }
     });
 
   } catch (error) {
-    console.error('Error executing code:', error);
+    console.error(error);
     // 检查是否因中断而出错
     if (abortFlags.get(id)) {
       sendResponse({ type: 'aborted', id });
@@ -119,11 +122,13 @@ function executeCode(id: string, code: string) {
     }
 
     // 发送错误结果
-    sendResponse({
-      type: 'error',
-      id,
-      error: "executing code"
-    });
+    if (error instanceof Error) {
+      sendResponse({
+        type: 'error',
+        id,
+        error: error.message
+      });
+    }
   } finally {
     // 清理中断标志
     abortFlags.delete(id);

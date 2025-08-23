@@ -1,0 +1,2 @@
+# Generated files should not be included in language statistics
+src/interpreter/moonbit-eval.js linguist-generated=true
