@@ -55,3 +55,7 @@ body {
   background-color: black;
   overflow: hidden;
 }
+
+.xterm-viewport {
+  overflow-y: hidden !important;
+}

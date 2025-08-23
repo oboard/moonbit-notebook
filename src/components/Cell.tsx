@@ -125,7 +125,7 @@ export const Cell: React.FC<CellProps> = ({
     const minHeight = 60; // 最小高度
     const lineHeight = 20; // 每行高度
     const padding = 20; // 上下内边距
-    const maxHeight = 400; // 最大高度
+    const maxHeight = 800; // 最大高度
 
     const calculatedHeight = Math.max(minHeight, Math.min(maxHeight, lines * lineHeight + padding));
     return calculatedHeight;

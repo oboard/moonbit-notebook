@@ -4,6 +4,7 @@ import { useNotebook } from './stores/notebook';
 import { fileService } from './services/fileService';
 import Notebook from './components/Notebook';
 import { NotebookToolbar } from './components/Toolbar';
+import Footer from './components/Footer';
 import type { WorkerMessage, WorkerResponse } from './workers/moonbitWorker';
 
 function App() {
@@ -300,6 +301,9 @@ function App() {
           isCellExecuting={isCellExecuting}
         />
       </div>
+
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
