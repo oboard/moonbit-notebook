@@ -17,8 +17,7 @@ export function add_extern_fn(vm: any,
 
 export function eval_result_to_string(result: any): MoonBit.String;
 
-export function create(log$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>,
-                       core$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): any;
+export function create(log$46$opt: MoonBit.UnboxedOptionAsInt<MoonBit.Bool>): any;
 
 export function value_to_string(value: any): MoonBit.String;
 
