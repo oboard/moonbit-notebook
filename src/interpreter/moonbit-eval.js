@@ -2798,20 +2798,20 @@ const moonbitlang$parser$handrolled_parser$$parse_tvar_binder$46$42$bind$124$343
 const moonbitlang$parser$handrolled_parser$$dummy_pos = { fname: "", lnum: 0, bol: 0, cnum: 0 };
 const moonbitlang$parser$lexer$$preserve_comment$46$42$bind$124$1052 = "///";
 const moonbitlang$parser$$attach_docstrings$46$42$bind$124$55 = "///|";
-const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2413 = "pub";
-const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2414 = "fn";
-const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2415 = "enum";
-const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3025 = ", ";
-const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3026 = ", ";
-const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3027 = ", ";
-const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3028 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3059 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3060 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3061 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3062 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3063 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3108 = ", ";
-const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3109 = ", ";
+const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2441 = "pub";
+const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2442 = "fn";
+const oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2443 = "enum";
+const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3053 = ", ";
+const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3054 = ", ";
+const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3055 = ", ";
+const oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3056 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3087 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3088 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3089 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3090 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3091 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3136 = ", ";
+const oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3137 = ", ";
 const oboard$moonbit$45$eval$interpreter$$bool_default_fn = (_ctx) => new Result$Ok$0$(new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Bool(false));
 const oboard$moonbit$45$eval$interpreter$$ignore_fn = (_ctx) => new Result$Ok$0$($64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit);
 const moonbitlang$parser$basic$$show_loc = moonbitlang$core$ref$$new$0$(false);
@@ -14855,6 +14855,33 @@ function moonbitlang$core$builtin$$Map$get$74$(self, key) {
     }
   }
 }
+function moonbitlang$core$builtin$$Map$get$77$(self, key) {
+  const hash = moonbitlang$core$builtin$$Hash$hash$42$(key);
+  let _tmp$4 = 0;
+  let _tmp$5 = hash & self.capacity_mask;
+  while (true) {
+    const i = _tmp$4;
+    const idx = _tmp$5;
+    const _tmp$6 = self.entries;
+    $bound_check(_tmp$6, idx);
+    const _bind = _tmp$6[idx];
+    if (_bind === undefined) {
+      return undefined;
+    } else {
+      const _Some = _bind;
+      const _entry = _Some;
+      if (_entry.hash === hash && _entry.key === key) {
+        return _entry.value;
+      }
+      if (i > _entry.psl) {
+        return undefined;
+      }
+      _tmp$4 = i + 1 | 0;
+      _tmp$5 = idx + 1 & self.capacity_mask;
+      continue;
+    }
+  }
+}
 function moonbitlang$core$builtin$$Map$get$14$(self, key) {
   const hash = moonbitlang$core$builtin$$Hash$hash$9$(key);
   let _tmp$4 = 0;
@@ -14956,33 +14983,6 @@ function moonbitlang$core$builtin$$Map$get$75$(self, key) {
       }
       if (i > _entry.psl) {
         return -1;
-      }
-      _tmp$4 = i + 1 | 0;
-      _tmp$5 = idx + 1 & self.capacity_mask;
-      continue;
-    }
-  }
-}
-function moonbitlang$core$builtin$$Map$get$77$(self, key) {
-  const hash = moonbitlang$core$builtin$$Hash$hash$42$(key);
-  let _tmp$4 = 0;
-  let _tmp$5 = hash & self.capacity_mask;
-  while (true) {
-    const i = _tmp$4;
-    const idx = _tmp$5;
-    const _tmp$6 = self.entries;
-    $bound_check(_tmp$6, idx);
-    const _bind = _tmp$6[idx];
-    if (_bind === undefined) {
-      return undefined;
-    } else {
-      const _Some = _bind;
-      const _entry = _Some;
-      if (_entry.hash === hash && _entry.key === key) {
-        return _entry.value;
-      }
-      if (i > _entry.psl) {
-        return undefined;
       }
       _tmp$4 = i + 1 | 0;
       _tmp$5 = idx + 1 & self.capacity_mask;
@@ -16707,6 +16707,27 @@ function moonbitlang$core$list$$List$iter$133$(self) {
   return _p$3;
 }
 function moonbitlang$core$list$$List$iter$100$(self) {
+  const _p$3 = (yield_) => {
+    let _tmp$4 = self;
+    while (true) {
+      const _param = _tmp$4;
+      if (_param.$tag === 0) {
+        return 1;
+      } else {
+        const _More = _param;
+        const _head = _More._0;
+        const _tail = _More._1;
+        if (moonbitlang$core$builtin$$Eq$op_equal$72$(yield_(_head), 0)) {
+          return 0;
+        }
+        _tmp$4 = _tail;
+        continue;
+      }
+    }
+  };
+  return _p$3;
+}
+function moonbitlang$core$list$$List$iter$94$(self) {
   const _p$3 = (yield_) => {
     let _tmp$4 = self;
     while (true) {
@@ -107135,7 +107156,7 @@ function oboard$moonbit$45$eval$interpreter$$RuntimeModule$new(pkg, deps, builde
   const struct_methods = moonbitlang$core$builtin$$Map$from_array$78$([]);
   const env = oboard$moonbit$45$eval$interpreter$$RuntimeEnvironment$new(undefined, values, struct_methods);
   const build = (code) => {
-    if (moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2413, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2413.length }) || (moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2414, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2414.length }) || moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2415, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2415.length }))) {
+    if (moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2441, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2441.length }) || (moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2442, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2442.length }) || moonbitlang$core$string$$String$has_prefix(code, { str: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2443, start: 0, end: oboard$moonbit$45$eval$interpreter$$new$46$42$bind$124$2443.length }))) {
       const impl_ = oboard$moonbit$45$eval$interpreter$$parse_code_to_impl(code);
       if (impl_.$tag === 1) {
         const _Ok = impl_;
@@ -108246,13 +108267,13 @@ function oboard$moonbit$45$eval$interpreter$$type_to_string(ty) {
       const _args = _Arrow._0;
       const _res = _Arrow._1;
       const arg_strs = moonbitlang$core$list$$List$map$147$(_args, (arg) => oboard$moonbit$45$eval$interpreter$$type_to_string(arg));
-      return `(${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(arg_strs), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3025, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3025.length })}) -> ${oboard$moonbit$45$eval$interpreter$$type_to_string(_res)}`;
+      return `(${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(arg_strs), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3053, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3053.length })}) -> ${oboard$moonbit$45$eval$interpreter$$type_to_string(_res)}`;
     }
     case 2: {
       const _Tuple = ty;
       const _tys = _Tuple._0;
       const type_strs = moonbitlang$core$list$$List$map$147$(_tys, (t) => oboard$moonbit$45$eval$interpreter$$type_to_string(t));
-      return `(${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3026, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3026.length })})`;
+      return `(${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3054, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3054.length })})`;
     }
     case 3: {
       const _Name = ty;
@@ -108266,7 +108287,7 @@ function oboard$moonbit$45$eval$interpreter$$type_to_string(ty) {
           return _name;
         } else {
           const type_strs$2 = moonbitlang$core$list$$List$map$147$(_tys$2, (t) => oboard$moonbit$45$eval$interpreter$$type_to_string(t));
-          return `${_name}[${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs$2), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3027, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3027.length })}]`;
+          return `${_name}[${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs$2), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3055, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3055.length })}]`;
         }
       } else {
         const _Dot = _x$2;
@@ -108278,7 +108299,7 @@ function oboard$moonbit$45$eval$interpreter$$type_to_string(ty) {
         } else {
           const type_strs$2 = moonbitlang$core$list$$List$map$147$(_tys$2, (t) => oboard$moonbit$45$eval$interpreter$$type_to_string(t));
           const prefix = _pkg === "" ? _id : `@${_pkg}.${_id}`;
-          return `${prefix}[${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs$2), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3028, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3028.length })}]`;
+          return `${prefix}[${moonbitlang$core$array$$Array$join(moonbitlang$core$list$$List$to_array$3$(type_strs$2), { str: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3056, start: 0, end: oboard$moonbit$45$eval$interpreter$$type_to_string$46$42$bind$124$3056.length })}]`;
         }
       }
     }
@@ -108292,7 +108313,7 @@ function oboard$moonbit$45$eval$interpreter$$type_to_string(ty) {
     }
   }
 }
-function oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1828(func) {
+function oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1856(func) {
   if (func.$tag === 0) {
     const _Lambda = func;
     const _parameters = _Lambda._0;
@@ -108462,7 +108483,7 @@ function oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$18
           if (_x.$tag === 15) {
             const _Function = _x;
             const _func = _Function._0;
-            inferred_type = oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1828(_func);
+            inferred_type = oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1856(_func);
           } else {
             inferred_type = "Any";
           }
@@ -108472,11 +108493,11 @@ function oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$18
           inferred_type = "Any";
         }
       }
-      return `(${moonbitlang$core$array$$Array$join(param_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3109, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3109.length })}) -> ${inferred_type}`;
+      return `(${moonbitlang$core$array$$Array$join(param_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3137, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3137.length })}) -> ${inferred_type}`;
     } else {
       const _Some = _return_type;
       const _t = _Some;
-      return `(${moonbitlang$core$array$$Array$join(param_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3108, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3108.length })}) -> ${oboard$moonbit$45$eval$interpreter$$type_to_string(_t)}`;
+      return `(${moonbitlang$core$array$$Array$join(param_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3136, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3136.length })}) -> ${oboard$moonbit$45$eval$interpreter$$type_to_string(_t)}`;
     }
   } else {
     return "<function>";
@@ -108514,7 +108535,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
           continue;
         }
       }
-      return `{${moonbitlang$core$array$$Array$join(parts, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3059, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3059.length })}}`;
+      return `{${moonbitlang$core$array$$Array$join(parts, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3087, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3087.length })}}`;
     }
     case 0: {
       return "()";
@@ -108592,7 +108613,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
         }
       }
       const parts$2 = _p$3;
-      return `(${moonbitlang$core$array$$Array$join(parts$2, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3060, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3060.length })})`;
+      return `(${moonbitlang$core$array$$Array$join(parts$2, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3088, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3088.length })})`;
     }
     case 13: {
       const _Array = self;
@@ -108613,7 +108634,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
         }
       }
       const parts$3 = _p$5;
-      return `[${moonbitlang$core$array$$Array$join(parts$3, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3061, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3061.length })}]`;
+      return `[${moonbitlang$core$array$$Array$join(parts$3, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3089, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3089.length })}]`;
     }
     case 15: {
       const _Struct = self;
@@ -108638,7 +108659,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
           continue;
         }
       }
-      return `{ ${moonbitlang$core$array$$Array$join(parts$4, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3062, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3062.length })} }`;
+      return `{ ${moonbitlang$core$array$$Array$join(parts$4, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3090, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3090.length })} }`;
     }
     case 17: {
       const _Constructor = self;
@@ -108665,7 +108686,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
           }
         }
         const arg_strs = _p$8;
-        return `${_name}(${moonbitlang$core$array$$Array$join(arg_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3063, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3063.length })})`;
+        return `${_name}(${moonbitlang$core$array$$Array$join(arg_strs, { str: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3091, start: 0, end: oboard$moonbit$45$eval$interpreter$$to_string$46$42$bind$124$3091.length })})`;
       }
     }
     case 19: {
@@ -108674,7 +108695,7 @@ function moonbitlang$core$builtin$$Show$to_string$9$(self) {
     case 16: {
       const _Closure = self;
       const _func = _Closure._0;
-      return oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1828(_func);
+      return oboard$moonbit$45$eval$interpreter$$to_string$46$infer_func_type$124$1856(_func);
     }
     default: {
       const _Exception = self;
@@ -112145,7 +112166,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$pattern_matches(
 function oboard$moonbit$45$eval$interpreter$$visit$46$alloc$124$952(evaluated_fields, env, pkg, name) {
   return new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Struct({ val: evaluated_fields, type_info: { pkg: pkg, name: name, env: env } });
 }
-function oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1164(_env) {
+function oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1177(_env) {
   const _continue_block = _env._1;
   const self = _env._0;
   const _bind = moonbitlang$core$list$$List$iter$106$(_continue_block);
@@ -112174,7 +112195,7 @@ function oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124
     return 1;
   });
 }
-function oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1272(value) {
+function oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1300(value) {
   if (value.$tag === 19) {
     return value;
   } else {
@@ -113378,12 +113399,127 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                 break _L$4;
               }
             }
+            case 17: {
+              const _Constructor = record_val;
+              const _refer = _Constructor._0;
+              if (_accessor.$tag === 0) {
+                const _Label = _accessor;
+                const _label = _Label._0;
+                const _bind$23 = _refer.val;
+                const _constr_name = _bind$23._0;
+                const _args$2 = _bind$23._1;
+                const field_name = _label.name;
+                const _bind$24 = moonbitlang$core$builtin$$Map$get$77$(_refer.type_info.env.type_definitions, _constr_name);
+                if (_bind$24 === undefined) {
+                  return oboard$moonbit$45$eval$interpreter$$error$9$("Field: constructor type definition not found", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:728:21-728:74");
+                } else {
+                  const _Some = _bind$24;
+                  const _type_def = _Some;
+                  const _bind$25 = _type_def.components;
+                  if (_bind$25.$tag === 4) {
+                    const _Variant = _bind$25;
+                    const _constructors = _Variant._0;
+                    const field_index = { val: -1 };
+                    const _foreach_result$4 = { val: $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Continue$79$ };
+                    const _bind$26 = moonbitlang$core$list$$List$iter$87$(_constructors);
+                    _bind$26((constr) => {
+                      let _foreach_error;
+                      _L$5: {
+                        if (constr.name.name === _constr_name) {
+                          const _bind$27 = constr.args;
+                          if (_bind$27 === undefined) {
+                          } else {
+                            const _Some$2 = _bind$27;
+                            const _constr_args = _Some$2;
+                            const index$3 = { val: 0 };
+                            const _foreach_result$5 = { val: $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Continue$79$ };
+                            const _bind$28 = moonbitlang$core$list$$List$iter$94$(_constr_args);
+                            _bind$28((arg) => {
+                              const _bind$29 = arg.label;
+                              if (_bind$29 === undefined) {
+                              } else {
+                                const _Some$3 = _bind$29;
+                                const _arg_label = _Some$3;
+                                if (_arg_label.name === field_name) {
+                                  field_index.val = index$3.val;
+                                  _foreach_result$5.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Break$79$(undefined);
+                                  return 0;
+                                }
+                              }
+                              index$3.val = index$3.val + 1 | 0;
+                              return 1;
+                            });
+                            const _tmp$10 = _foreach_result$5.val;
+                            switch (_tmp$10.$tag) {
+                              case 0: {
+                                break;
+                              }
+                              case 1: {
+                                const _break$4 = _tmp$10;
+                                _break$4._0;
+                                break;
+                              }
+                              case 2: {
+                                const _return$4 = _tmp$10;
+                                _foreach_result$4.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Return$79$(_return$4._0);
+                                return 0;
+                              }
+                              case 3: {
+                                const _error$4 = _tmp$10;
+                                const _tmp$11 = _error$4._0;
+                                _foreach_error = _tmp$11;
+                                break _L$5;
+                              }
+                              default: {
+                                $panic();
+                              }
+                            }
+                          }
+                          _foreach_result$4.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Break$79$(undefined);
+                          return 0;
+                        }
+                        return 1;
+                      }
+                      _foreach_result$4.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Error$79$(_foreach_error);
+                      return 0;
+                    });
+                    const _tmp$10 = _foreach_result$4.val;
+                    switch (_tmp$10.$tag) {
+                      case 0: {
+                        break;
+                      }
+                      case 1: {
+                        const _break$4 = _tmp$10;
+                        _break$4._0;
+                        break;
+                      }
+                      case 2: {
+                        const _return$4 = _tmp$10;
+                        return new Result$Ok$0$(_return$4._0);
+                      }
+                      case 3: {
+                        const _error$4 = _tmp$10;
+                        return new Result$Err$0$(_error$4._0);
+                      }
+                      default: {
+                        $panic();
+                      }
+                    }
+                    return field_index.val >= 0 && field_index.val < _args$2.length ? new Result$Ok$0$(moonbitlang$core$array$$Array$op_get$9$(_args$2, field_index.val)) : oboard$moonbit$45$eval$interpreter$$error$9$(`Field: ${field_name} not found in constructor ${_constr_name}`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:723:21-723:90");
+                  } else {
+                    return oboard$moonbit$45$eval$interpreter$$error$9$("Field: not a variant constructor", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:726:22-726:63");
+                  }
+                }
+              } else {
+                break _L$4;
+              }
+            }
             default: {
               break _L$4;
             }
           }
         }
-        return oboard$moonbit$45$eval$interpreter$$error$9$("Field: not implemented", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:682:14-682:45");
+        return oboard$moonbit$45$eval$interpreter$$error$9$("Field: not implemented", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:731:14-731:45");
       }
       case 31: {
         const _DotApply = node$2;
@@ -113459,7 +113595,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
               const _values$3 = _Map$2._0;
               const _bind$27 = moonbitlang$core$builtin$$Map$get$14$(_values$3, index_val);
               if (_bind$27 === undefined) {
-                return oboard$moonbit$45$eval$interpreter$$error$9$("MapGet: not found", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:707:21-707:47");
+                return oboard$moonbit$45$eval$interpreter$$error$9$("MapGet: not found", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:756:21-756:47");
               } else {
                 const _Some = _bind$27;
                 const _value$3 = _Some;
@@ -113471,7 +113607,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
             }
           }
         }
-        return oboard$moonbit$45$eval$interpreter$$error$9$("ArrayGet: not implemented", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:709:14-709:48");
+        return oboard$moonbit$45$eval$interpreter$$error$9$("ArrayGet: not implemented", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:758:14-758:48");
       }
       case 36: {
         const _Pipe = node$2;
@@ -113792,13 +113928,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                     oboard$moonbit$45$eval$interpreter$$RuntimeEnvironment$update(self.current_module.env, binder._0.name, moonbitlang$core$array$$Array$op_get$9$(_arr$2, i));
                   });
                 } else {
-                  oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1164(_env);
+                  oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1177(_env);
                 }
                 continue _L$6;
               }
             }
           }
-          oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1164(_env);
+          oboard$moonbit$45$eval$interpreter$$visit$46$execute_continue_block$124$1177(_env);
           continue;
         }
         if (_for_else === undefined) {
@@ -113919,158 +114055,282 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
         } else {
           return _bind$34;
         }
-        if (_bind$35.$tag === 15) {
-          const _Struct = _bind$35;
-          const _refer = _Struct._0;
-          switch (_accessor$2.$tag) {
-            case 0: {
-              const _Label = _accessor$2;
-              const _label = _Label._0;
-              if (_augmented_by$2 === undefined) {
-                const _tmp$13 = _refer.val;
-                const _tmp$14 = _label.name;
-                const _bind$36 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
-                let _tmp$15;
-                if (_bind$36.$tag === 1) {
-                  const _ok = _bind$36;
-                  _tmp$15 = _ok._0;
+        switch (_bind$35.$tag) {
+          case 15: {
+            const _Struct = _bind$35;
+            const _refer = _Struct._0;
+            switch (_accessor$2.$tag) {
+              case 0: {
+                const _Label = _accessor$2;
+                const _label = _Label._0;
+                if (_augmented_by$2 === undefined) {
+                  const _tmp$13 = _refer.val;
+                  const _tmp$14 = _label.name;
+                  const _bind$36 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
+                  let _tmp$15;
+                  if (_bind$36.$tag === 1) {
+                    const _ok = _bind$36;
+                    _tmp$15 = _ok._0;
+                  } else {
+                    return _bind$36;
+                  }
+                  moonbitlang$core$builtin$$Map$set$74$(_tmp$13, _tmp$14, _tmp$15);
                 } else {
-                  return _bind$36;
+                  const _Some = _augmented_by$2;
+                  const _op$4 = _Some;
+                  const _bind$36 = _op$4.name;
+                  let op_name;
+                  if (_bind$36.$tag === 0) {
+                    const _Ident$4 = _bind$36;
+                    op_name = _Ident$4._0;
+                  } else {
+                    op_name = "+";
+                  }
+                  let base_op;
+                  switch (op_name) {
+                    case "+": {
+                      base_op = "+";
+                      break;
+                    }
+                    case "-": {
+                      base_op = "-";
+                      break;
+                    }
+                    case "*": {
+                      base_op = "*";
+                      break;
+                    }
+                    case "/": {
+                      base_op = "/";
+                      break;
+                    }
+                    case "%": {
+                      base_op = "%";
+                      break;
+                    }
+                    default: {
+                      base_op = "+";
+                    }
+                  }
+                  const _p$6 = moonbitlang$core$builtin$$Map$get$74$(_refer.val, _label.name);
+                  const _p$7 = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(0);
+                  let current_val;
+                  if (_p$6 === undefined) {
+                    current_val = _p$7;
+                  } else {
+                    const _p$8 = _p$6;
+                    current_val = _p$8;
+                  }
+                  const _bind$37 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
+                  let right_val;
+                  if (_bind$37.$tag === 1) {
+                    const _ok = _bind$37;
+                    right_val = _ok._0;
+                  } else {
+                    return _bind$37;
+                  }
+                  const new_val = oboard$moonbit$45$eval$interpreter$$runtime_value_infix(base_op, current_val, right_val);
+                  moonbitlang$core$builtin$$Map$set$74$(_refer.val, _label.name, new_val);
                 }
-                moonbitlang$core$builtin$$Map$set$74$(_tmp$13, _tmp$14, _tmp$15);
-              } else {
-                const _Some = _augmented_by$2;
-                const _op$4 = _Some;
-                const _bind$36 = _op$4.name;
-                let op_name;
-                if (_bind$36.$tag === 0) {
-                  const _Ident$4 = _bind$36;
-                  op_name = _Ident$4._0;
-                } else {
-                  op_name = "+";
-                }
-                let base_op;
-                switch (op_name) {
-                  case "+": {
-                    base_op = "+";
-                    break;
-                  }
-                  case "-": {
-                    base_op = "-";
-                    break;
-                  }
-                  case "*": {
-                    base_op = "*";
-                    break;
-                  }
-                  case "/": {
-                    base_op = "/";
-                    break;
-                  }
-                  case "%": {
-                    base_op = "%";
-                    break;
-                  }
-                  default: {
-                    base_op = "+";
-                  }
-                }
-                const _p$6 = moonbitlang$core$builtin$$Map$get$74$(_refer.val, _label.name);
-                const _p$7 = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(0);
-                let current_val;
-                if (_p$6 === undefined) {
-                  current_val = _p$7;
-                } else {
-                  const _p$8 = _p$6;
-                  current_val = _p$8;
-                }
-                const _bind$37 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
-                let right_val;
-                if (_bind$37.$tag === 1) {
-                  const _ok = _bind$37;
-                  right_val = _ok._0;
-                } else {
-                  return _bind$37;
-                }
-                const new_val = oboard$moonbit$45$eval$interpreter$$runtime_value_infix(base_op, current_val, right_val);
-                moonbitlang$core$builtin$$Map$set$74$(_refer.val, _label.name, new_val);
+                break;
               }
-              break;
-            }
-            case 1: {
-              const _Index = _accessor$2;
-              const _tuple_index = _Index._0;
-              if (_augmented_by$2 === undefined) {
-                const _tmp$13 = _refer.val;
-                const _tmp$14 = moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10);
-                const _bind$36 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
-                let _tmp$15;
-                if (_bind$36.$tag === 1) {
-                  const _ok = _bind$36;
-                  _tmp$15 = _ok._0;
+              case 1: {
+                const _Index = _accessor$2;
+                const _tuple_index = _Index._0;
+                if (_augmented_by$2 === undefined) {
+                  const _tmp$13 = _refer.val;
+                  const _tmp$14 = moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10);
+                  const _bind$36 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
+                  let _tmp$15;
+                  if (_bind$36.$tag === 1) {
+                    const _ok = _bind$36;
+                    _tmp$15 = _ok._0;
+                  } else {
+                    return _bind$36;
+                  }
+                  moonbitlang$core$builtin$$Map$set$74$(_tmp$13, _tmp$14, _tmp$15);
                 } else {
-                  return _bind$36;
+                  const _Some = _augmented_by$2;
+                  const _op$4 = _Some;
+                  const _bind$36 = _op$4.name;
+                  let op_name;
+                  if (_bind$36.$tag === 0) {
+                    const _Ident$4 = _bind$36;
+                    op_name = _Ident$4._0;
+                  } else {
+                    op_name = "+";
+                  }
+                  let base_op;
+                  switch (op_name) {
+                    case "+": {
+                      base_op = "+";
+                      break;
+                    }
+                    case "-": {
+                      base_op = "-";
+                      break;
+                    }
+                    case "*": {
+                      base_op = "*";
+                      break;
+                    }
+                    case "/": {
+                      base_op = "/";
+                      break;
+                    }
+                    case "%": {
+                      base_op = "%";
+                      break;
+                    }
+                    default: {
+                      base_op = "+";
+                    }
+                  }
+                  const _p$6 = moonbitlang$core$builtin$$Map$get$74$(_refer.val, moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10));
+                  const _p$7 = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(0);
+                  let current_val;
+                  if (_p$6 === undefined) {
+                    current_val = _p$7;
+                  } else {
+                    const _p$8 = _p$6;
+                    current_val = _p$8;
+                  }
+                  const _bind$37 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
+                  let right_val;
+                  if (_bind$37.$tag === 1) {
+                    const _ok = _bind$37;
+                    right_val = _ok._0;
+                  } else {
+                    return _bind$37;
+                  }
+                  const new_val = oboard$moonbit$45$eval$interpreter$$runtime_value_infix(base_op, current_val, right_val);
+                  moonbitlang$core$builtin$$Map$set$74$(_refer.val, moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10), new_val);
                 }
-                moonbitlang$core$builtin$$Map$set$74$(_tmp$13, _tmp$14, _tmp$15);
-              } else {
-                const _Some = _augmented_by$2;
-                const _op$4 = _Some;
-                const _bind$36 = _op$4.name;
-                let op_name;
-                if (_bind$36.$tag === 0) {
-                  const _Ident$4 = _bind$36;
-                  op_name = _Ident$4._0;
-                } else {
-                  op_name = "+";
-                }
-                let base_op;
-                switch (op_name) {
-                  case "+": {
-                    base_op = "+";
-                    break;
-                  }
-                  case "-": {
-                    base_op = "-";
-                    break;
-                  }
-                  case "*": {
-                    base_op = "*";
-                    break;
-                  }
-                  case "/": {
-                    base_op = "/";
-                    break;
-                  }
-                  case "%": {
-                    base_op = "%";
-                    break;
-                  }
-                  default: {
-                    base_op = "+";
-                  }
-                }
-                const _p$6 = moonbitlang$core$builtin$$Map$get$74$(_refer.val, moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10));
-                const _p$7 = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(0);
-                let current_val;
-                if (_p$6 === undefined) {
-                  current_val = _p$7;
-                } else {
-                  const _p$8 = _p$6;
-                  current_val = _p$8;
-                }
-                const _bind$37 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
-                let right_val;
-                if (_bind$37.$tag === 1) {
-                  const _ok = _bind$37;
-                  right_val = _ok._0;
-                } else {
-                  return _bind$37;
-                }
-                const new_val = oboard$moonbit$45$eval$interpreter$$runtime_value_infix(base_op, current_val, right_val);
-                moonbitlang$core$builtin$$Map$set$74$(_refer.val, moonbitlang$core$int$$Int$to_string$46$inner(_tuple_index, 10), new_val);
+                break;
               }
-              break;
             }
+            break;
+          }
+          case 17: {
+            const _Constructor = _bind$35;
+            const _refer$2 = _Constructor._0;
+            if (_accessor$2.$tag === 0) {
+              const _Label$2 = _accessor$2;
+              const _label$2 = _Label$2._0;
+              const _bind$36 = _refer$2.val;
+              const _constr_name = _bind$36._0;
+              const _args$4 = _bind$36._1;
+              const field_name = _label$2.name;
+              const _bind$37 = moonbitlang$core$builtin$$Map$get$77$(_refer$2.type_info.env.type_definitions, _constr_name);
+              if (_bind$37 === undefined) {
+              } else {
+                const _Some = _bind$37;
+                const _type_def = _Some;
+                const _bind$38 = _type_def.components;
+                if (_bind$38.$tag === 4) {
+                  const _Variant = _bind$38;
+                  const _constructors = _Variant._0;
+                  const field_index = { val: -1 };
+                  const _foreach_result$6 = { val: $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Continue$79$ };
+                  const _bind$39 = moonbitlang$core$list$$List$iter$87$(_constructors);
+                  _bind$39((constr) => {
+                    let _foreach_error;
+                    _L$8: {
+                      if (constr.name.name === _constr_name) {
+                        const _bind$40 = constr.args;
+                        if (_bind$40 === undefined) {
+                        } else {
+                          const _Some$2 = _bind$40;
+                          const _constr_args = _Some$2;
+                          const index$3 = { val: 0 };
+                          const _foreach_result$7 = { val: $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Continue$79$ };
+                          const _bind$41 = moonbitlang$core$list$$List$iter$94$(_constr_args);
+                          _bind$41((arg) => {
+                            const _bind$42 = arg.label;
+                            if (_bind$42 === undefined) {
+                            } else {
+                              const _Some$3 = _bind$42;
+                              const _arg_label = _Some$3;
+                              if (_arg_label.name === field_name) {
+                                field_index.val = index$3.val;
+                                _foreach_result$7.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Break$79$(undefined);
+                                return 0;
+                              }
+                            }
+                            index$3.val = index$3.val + 1 | 0;
+                            return 1;
+                          });
+                          const _tmp$13 = _foreach_result$7.val;
+                          switch (_tmp$13.$tag) {
+                            case 0: {
+                              break;
+                            }
+                            case 1: {
+                              const _break$6 = _tmp$13;
+                              _break$6._0;
+                              break;
+                            }
+                            case 2: {
+                              const _return$6 = _tmp$13;
+                              _foreach_result$6.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Return$79$(_return$6._0);
+                              return 0;
+                            }
+                            case 3: {
+                              const _error$6 = _tmp$13;
+                              const _tmp$14 = _error$6._0;
+                              _foreach_error = _tmp$14;
+                              break _L$8;
+                            }
+                            default: {
+                              $panic();
+                            }
+                          }
+                        }
+                        _foreach_result$6.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Break$79$(undefined);
+                        return 0;
+                      }
+                      return 1;
+                    }
+                    _foreach_result$6.val = new $64$moonbitlang$47$core$47$builtin$46$ForeachResult$Error$79$(_foreach_error);
+                    return 0;
+                  });
+                  const _tmp$13 = _foreach_result$6.val;
+                  switch (_tmp$13.$tag) {
+                    case 0: {
+                      break;
+                    }
+                    case 1: {
+                      const _break$6 = _tmp$13;
+                      _break$6._0;
+                      break;
+                    }
+                    case 2: {
+                      const _return$6 = _tmp$13;
+                      return new Result$Ok$0$(_return$6._0);
+                    }
+                    case 3: {
+                      const _error$6 = _tmp$13;
+                      return new Result$Err$0$(_error$6._0);
+                    }
+                    default: {
+                      $panic();
+                    }
+                  }
+                  if (field_index.val >= 0 && field_index.val < _args$4.length) {
+                    const _bind$40 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _field);
+                    let new_field_value;
+                    if (_bind$40.$tag === 1) {
+                      const _ok = _bind$40;
+                      new_field_value = _ok._0;
+                    } else {
+                      return _bind$40;
+                    }
+                    moonbitlang$core$array$$Array$op_set$9$(_args$4, field_index.val, new_field_value);
+                  }
+                }
+              }
+            }
+            break;
           }
         }
         return new Result$Ok$0$($64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit);
@@ -114180,63 +114440,66 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           return { pattern: _bind$40, guard_: _bind$42, body: _bind$41 };
         });
         const is_continue = { val: true };
-        while (true) {
+        let result$2 = $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit;
+        _L$8: while (true) {
           if (is_continue.val) {
             is_continue.val = false;
+            let _tmp$17;
             let _try_err$2;
-            _L$8: {
-              _L$9: {
+            _L$9: {
+              _L$10: {
                 const _bind$40 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_match_runtime(self, arg.val, cases);
                 if (_bind$40.$tag === 1) {
                   const _ok = _bind$40;
-                  _ok._0;
+                  _tmp$17 = _ok._0;
                 } else {
                   const _err = _bind$40;
-                  const _tmp$17 = _err._0;
-                  _try_err$2 = _tmp$17;
-                  break _L$9;
+                  const _tmp$18 = _err._0;
+                  _try_err$2 = _tmp$18;
+                  break _L$10;
                 }
-                break _L$8;
+                break _L$9;
               }
               switch (_try_err$2.$tag) {
                 case 3: {
                   const _Break$2 = _try_err$2;
                   const _value$3 = _Break$2._0;
                   const _p$6 = $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit;
-                  let _tmp$17;
+                  let _tmp$18;
                   if (_value$3 === undefined) {
-                    _tmp$17 = _p$6;
+                    _tmp$18 = _p$6;
                   } else {
                     const _p$7 = _value$3;
-                    _tmp$17 = _p$7;
+                    _tmp$18 = _p$7;
                   }
-                  return new Result$Ok$0$(_tmp$17);
+                  return new Result$Ok$0$(_tmp$18);
                 }
                 case 4: {
                   const _Continue$2 = _try_err$2;
                   const _arr$2 = _Continue$2._0;
                   arg.val = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Tuple(_arr$2);
                   is_continue.val = true;
-                  break;
+                  continue _L$8;
                 }
                 default: {
                   return new Result$Err$0$(_try_err$2);
                 }
               }
             }
+            result$2 = _tmp$17;
             continue;
           } else {
             break;
           }
         }
-        return new Result$Ok$0$($64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit);
+        return new Result$Ok$0$(result$2);
       }
       case 47: {
         const _Try = node$2;
         const _body$10 = _Try._0;
         const _catch_ = _Try._1;
         let _try_err$2;
-        _L$8: {
+        _L$9: {
           const _bind$40 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _body$10);
           let _tmp$17;
           if (_bind$40.$tag === 1) {
@@ -114246,7 +114509,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
             const _err = _bind$40;
             const _tmp$18 = _err._0;
             _try_err$2 = _tmp$18;
-            break _L$8;
+            break _L$9;
           }
           return new Result$Ok$0$(_tmp$17);
         }
@@ -114263,21 +114526,21 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
         const _body$11 = _TryOperator._0;
         const _kind = _TryOperator._1;
         const _bind$40 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _body$11);
-        let result$2;
+        let result$3;
         if (_bind$40.$tag === 1) {
           const _ok = _bind$40;
-          result$2 = _ok._0;
+          result$3 = _ok._0;
         } else {
           return _bind$40;
         }
-        if (result$2.$tag === 18) {
+        if (result$3.$tag === 18) {
           if (_kind === 0) {
             return new Result$Ok$0$($64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit);
           } else {
-            return new Result$Ok$0$(result$2);
+            return new Result$Ok$0$(result$3);
           }
         } else {
-          return new Result$Ok$0$(result$2);
+          return new Result$Ok$0$(result$3);
         }
       }
       case 32: {
@@ -114299,8 +114562,8 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           return _bind$41;
         }
         if (original_record.$tag === 15) {
-          const _Struct = original_record;
-          const _original_ref = _Struct._0;
+          const _Struct$2 = original_record;
+          const _original_ref = _Struct$2._0;
           const new_fields = moonbitlang$core$builtin$$Map$new$46$inner$74$(8);
           const _p$6 = _original_ref.val;
           let _tmp$17 = _p$6.head;
@@ -114325,7 +114588,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           const _bind$42 = moonbitlang$core$list$$List$iter$112$(_fields$2);
           _bind$42((field) => {
             let _foreach_error;
-            _L$9: {
+            _L$10: {
               const field_name = field.label.name;
               const _bind$43 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, field.expr);
               let field_value;
@@ -114336,7 +114599,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                 const _err = _bind$43;
                 const _tmp$18 = _err._0;
                 _foreach_error = _tmp$18;
-                break _L$9;
+                break _L$10;
               }
               moonbitlang$core$builtin$$Map$set$74$(new_fields, field_name, field_value);
               return 1;
@@ -114368,7 +114631,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           }
           return new Result$Ok$0$(new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Struct({ val: new_fields, type_info: _original_ref.type_info }));
         } else {
-          return oboard$moonbit$45$eval$interpreter$$error$9$("RecordUpdate: expected struct", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1078:14-1078:52");
+          return oboard$moonbit$45$eval$interpreter$$error$9$("RecordUpdate: expected struct", "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1179:14-1179:52");
         }
       }
       case 30: {
@@ -114379,13 +114642,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           const env = mod.env;
           const _bind$42 = moonbitlang$core$builtin$$Map$get$78$(env.struct_methods, ty_name);
           if (_bind$42 === undefined) {
-            return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${ty_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1091:19-1091:55");
+            return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${ty_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1192:19-1192:55");
           } else {
             const _Some = _bind$42;
             const _methods = _Some;
             const _bind$43 = moonbitlang$core$builtin$$Map$get$74$(_methods, _method_name$3.name);
             if (_bind$43 === undefined) {
-              return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${ty_name}:${_method_name$3.name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1089:23-1089:79");
+              return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${ty_name}:${_method_name$3.name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1190:23-1190:79");
             } else {
               const _Some$2 = _bind$43;
               const _func$5 = _Some$2;
@@ -114495,8 +114758,8 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           const _op$4 = _Infix$2._0;
           const _lhs$3 = _Infix$2._1;
           const _rhs$3 = _Infix$2._2;
-          _L$9: {
-            _L$10: {
+          _L$10: {
+            _L$11: {
               const _bind$46 = _op$4.name;
               if (_bind$46.$tag === 0) {
                 const _Ident$4 = _bind$46;
@@ -114519,8 +114782,8 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                     } else {
                       return _bind$48;
                     }
-                    _L$11: {
-                      _L$12: {
+                    _L$12: {
+                      _L$13: {
                         if (start_val.$tag === 2) {
                           const _Int = start_val;
                           const _start = _Int._0;
@@ -114532,68 +114795,9 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                               while (true) {
                                 const i = _tmp$19;
                                 if (i < _end) {
-                                  _L$13: {
+                                  _L$14: {
                                     const _bind$49 = visit_fn(new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(i));
                                     if (_bind$49 === 1) {
-                                      return 1;
-                                    } else {
-                                      break _L$13;
-                                    }
-                                  }
-                                  _tmp$19 = i + 1 | 0;
-                                  continue;
-                                } else {
-                                  break;
-                                }
-                              }
-                              return 0;
-                            } };
-                            iterator = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Iter(range_iterator);
-                          } else {
-                            break _L$12;
-                          }
-                        } else {
-                          break _L$12;
-                        }
-                        break _L$11;
-                      }
-                      iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1272(iterable_value);
-                    }
-                    break;
-                  }
-                  case "..=": {
-                    const _bind$49 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _lhs$3);
-                    let start_val$2;
-                    if (_bind$49.$tag === 1) {
-                      const _ok = _bind$49;
-                      start_val$2 = _ok._0;
-                    } else {
-                      return _bind$49;
-                    }
-                    const _bind$50 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _rhs$3);
-                    let end_val$2;
-                    if (_bind$50.$tag === 1) {
-                      const _ok = _bind$50;
-                      end_val$2 = _ok._0;
-                    } else {
-                      return _bind$50;
-                    }
-                    _L$12: {
-                      _L$13: {
-                        if (start_val$2.$tag === 2) {
-                          const _Int = start_val$2;
-                          const _start = _Int._0;
-                          if (end_val$2.$tag === 2) {
-                            const _Int$2 = end_val$2;
-                            const _end = _Int$2._0;
-                            const range_iterator = { iterate_fn: (visit_fn) => {
-                              let _tmp$19 = _start;
-                              while (true) {
-                                const i = _tmp$19;
-                                if (i <= _end) {
-                                  _L$14: {
-                                    const _bind$51 = visit_fn(new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(i));
-                                    if (_bind$51 === 1) {
                                       return 1;
                                     } else {
                                       break _L$14;
@@ -114616,23 +114820,82 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                         }
                         break _L$12;
                       }
-                      iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1272(iterable_value);
+                      iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1300(iterable_value);
+                    }
+                    break;
+                  }
+                  case "..=": {
+                    const _bind$49 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _lhs$3);
+                    let start_val$2;
+                    if (_bind$49.$tag === 1) {
+                      const _ok = _bind$49;
+                      start_val$2 = _ok._0;
+                    } else {
+                      return _bind$49;
+                    }
+                    const _bind$50 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _rhs$3);
+                    let end_val$2;
+                    if (_bind$50.$tag === 1) {
+                      const _ok = _bind$50;
+                      end_val$2 = _ok._0;
+                    } else {
+                      return _bind$50;
+                    }
+                    _L$13: {
+                      _L$14: {
+                        if (start_val$2.$tag === 2) {
+                          const _Int = start_val$2;
+                          const _start = _Int._0;
+                          if (end_val$2.$tag === 2) {
+                            const _Int$2 = end_val$2;
+                            const _end = _Int$2._0;
+                            const range_iterator = { iterate_fn: (visit_fn) => {
+                              let _tmp$19 = _start;
+                              while (true) {
+                                const i = _tmp$19;
+                                if (i <= _end) {
+                                  _L$15: {
+                                    const _bind$51 = visit_fn(new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Int(i));
+                                    if (_bind$51 === 1) {
+                                      return 1;
+                                    } else {
+                                      break _L$15;
+                                    }
+                                  }
+                                  _tmp$19 = i + 1 | 0;
+                                  continue;
+                                } else {
+                                  break;
+                                }
+                              }
+                              return 0;
+                            } };
+                            iterator = new $64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Iter(range_iterator);
+                          } else {
+                            break _L$14;
+                          }
+                        } else {
+                          break _L$14;
+                        }
+                        break _L$13;
+                      }
+                      iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1300(iterable_value);
                     }
                     break;
                   }
                   default: {
-                    break _L$10;
+                    break _L$11;
                   }
                 }
               } else {
-                break _L$10;
+                break _L$11;
               }
-              break _L$9;
+              break _L$10;
             }
-            iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1272(iterable_value);
+            iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1300(iterable_value);
           }
         } else {
-          iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1272(iterable_value);
+          iterator = oboard$moonbit$45$eval$interpreter$$visit$46$get_iterator$124$1300(iterable_value);
         }
         if (iterator.$tag === 19) {
           const _Iter = iterator;
@@ -114640,13 +114903,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
           const _func$5 = _iter_impl.iterate_fn;
           _func$5((value$2) => {
             oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$push_scope(self);
-            _L$9: {
-              _L$10: {
+            _L$10: {
+              _L$11: {
                 if (_binders$2.$tag === 1) {
                   const _More = _binders$2;
                   const _x$7 = _More._0;
                   if (_x$7 === undefined) {
-                    break _L$10;
+                    break _L$11;
                   } else {
                     const _Some = _x$7;
                     const _binder = _Some;
@@ -114654,13 +114917,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                     if (_x$8.$tag === 0) {
                       oboard$moonbit$45$eval$interpreter$$RuntimeEnvironment$set(self.current_module.env, _binder.name, value$2);
                     } else {
-                      break _L$10;
+                      break _L$11;
                     }
                   }
                 } else {
-                  break _L$10;
+                  break _L$11;
                 }
-                break _L$9;
+                break _L$10;
               }
               if (_binders$2.$tag === 1) {
                 const _More = _binders$2;
@@ -114673,10 +114936,10 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                 }
               }
             }
-            let result$3;
+            let result$4;
             let _try_err$3;
-            _L$10: {
-              _L$11: {
+            _L$11: {
+              _L$12: {
                 const _bind$46 = oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, _body$12);
                 if (_bind$46.$tag === 1) {
                   const _ok = _bind$46;
@@ -114685,33 +114948,33 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$visit(self, node
                   const _err = _bind$46;
                   const _tmp$19 = _err._0;
                   _try_err$3 = _tmp$19;
-                  break _L$11;
+                  break _L$12;
                 }
-                result$3 = 0;
-                break _L$10;
+                result$4 = 0;
+                break _L$11;
               }
               switch (_try_err$3.$tag) {
                 case 3: {
-                  result$3 = 1;
+                  result$4 = 1;
                   break;
                 }
                 case 4: {
-                  result$3 = 0;
+                  result$4 = 0;
                   break;
                 }
                 default: {
-                  result$3 = 1;
+                  result$4 = 1;
                 }
               }
             }
             oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$pop_scope(self);
-            return result$3;
+            return result$4;
           });
         }
         return new Result$Ok$0$($64$oboard$47$moonbit$45$eval$47$interpreter$46$RuntimeValue$Unit);
       }
       default: {
-        return oboard$moonbit$45$eval$interpreter$$error$9$(`visit: unimplemented ${moonbitlang$core$json$$Json$stringify$46$inner(moonbitlang$core$builtin$$ToJson$to_json$85$(node$2), false, 0)}`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1220:10-1220:69");
+        return oboard$moonbit$45$eval$interpreter$$error$9$(`visit: unimplemented ${moonbitlang$core$json$$Json$stringify$46$inner(moonbitlang$core$builtin$$ToJson$to_json$85$(node$2), false, 0)}`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1321:10-1321:69");
       }
     }
   }
@@ -114986,7 +115249,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_function
         const _embedded_name = _EmbeddedFunction._0;
         const _bind$3 = moonbitlang$core$builtin$$Map$get$10$(self.embedded_fns, _embedded_name);
         if (_bind$3 === undefined) {
-          return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded function:${_embedded_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1705:19-1705:72");
+          return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded function:${_embedded_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1806:19-1806:72");
         } else {
           const _Some = _bind$3;
           const _embedded_func = _Some;
@@ -115013,7 +115276,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_function
         return _embedded_func({ context: self, mod: _bind$5, arguments: evaluated_args });
       }
       default: {
-        return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${moonbitlang$core$json$$Json$stringify$46$inner(moonbitlang$core$builtin$$ToJson$to_json$171$(long_ident), false, 0)} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1722:19-1722:80");
+        return oboard$moonbit$45$eval$interpreter$$error$9$(`Method:${moonbitlang$core$json$$Json$stringify$46$inner(moonbitlang$core$builtin$$ToJson$to_json$171$(long_ident), false, 0)} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1823:19-1823:80");
       }
     }
   });
@@ -115077,13 +115340,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_method_c
   if (_bind === undefined) {
     const _bind$2 = moonbitlang$core$builtin$$Map$get$19$(self.embedded_methods, self_type.name);
     if (_bind$2 === undefined) {
-      return oboard$moonbit$45$eval$interpreter$$error$9$(`exec: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1796:11-1796:80");
+      return oboard$moonbit$45$eval$interpreter$$error$9$(`exec: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1897:11-1897:80");
     } else {
       const _Some = _bind$2;
       const _type_methods = _Some;
       const _bind$3 = moonbitlang$core$builtin$$Map$get$10$(_type_methods, method_name);
       if (_bind$3 === undefined) {
-        return oboard$moonbit$45$eval$interpreter$$error$9$(`exec embedded method: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1791:15-1793:16");
+        return oboard$moonbit$45$eval$interpreter$$error$9$(`exec embedded method: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1892:15-1894:16");
       } else {
         const _Some$2 = _bind$3;
         const _embedded_method = _Some$2;
@@ -115194,7 +115457,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_method_c
         }
         break _L;
       }
-      const _bind$2 = oboard$moonbit$45$eval$interpreter$$error$9$(`exec method: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1763:11-1765:12");
+      const _bind$2 = oboard$moonbit$45$eval$interpreter$$error$9$(`exec method: ${self_type.pkg === "main" ? "" : `@${self_type.pkg}.`}${self_type.name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1864:11-1866:12");
       if (_bind$2.$tag === 1) {
         const _ok = _bind$2;
         result = _ok._0;
@@ -115330,13 +115593,13 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_static_m
 function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$execute_embedded_static_method(self, type_name, method_name, args) {
   const _bind = moonbitlang$core$builtin$$Map$get$19$(self.embedded_methods, type_name);
   if (_bind === undefined) {
-    return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded Method:${type_name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1862:13-1862:76");
+    return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded Method:${type_name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1963:13-1963:76");
   } else {
     const _Some = _bind;
     const _methods = _Some;
     const _bind$2 = moonbitlang$core$builtin$$Map$get$10$(_methods, method_name);
     if (_bind$2 === undefined) {
-      return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded Method:${type_name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1860:17-1860:80");
+      return oboard$moonbit$45$eval$interpreter$$error$9$(`Embedded Method:${type_name}::${method_name} not found`, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1961:17-1961:80");
     } else {
       const _Some$2 = _bind$2;
       const _embedded_func = _Some$2;
@@ -115419,7 +115682,7 @@ function oboard$moonbit$45$eval$interpreter$$ClosureInterpreter$interp_string(se
           } else {
             const _Err = _bind$3;
             const _msg = _Err._0;
-            const _bind$4 = oboard$moonbit$45$eval$interpreter$$error$8$(_msg, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1248:23-1248:33");
+            const _bind$4 = oboard$moonbit$45$eval$interpreter$$error$8$(_msg, "/Users/oboard/Development/moonbit-packages/moonbit-eval/src/interpreter/interpreter.mbt:1349:23-1349:33");
             if (_bind$4.$tag === 1) {
               const _ok = _bind$4;
               _ok._0;
