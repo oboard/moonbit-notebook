@@ -67,8 +67,8 @@ function executeCode(id: string, code: string) {
     const startTime = new Date().toISOString();
 
     // 添加内置函数
-    add_embedded_fn(vm, '%println_mono', (ctx: { args: { value: unknown }[] }) => {
-      const str = `${value_to_string(ctx.args[0].value)}\n`;
+    add_embedded_fn(vm, '%println_mono', (ctx: { args: { val: unknown }[] }) => {
+      const str = `${value_to_string(ctx.args[0].val)}\n`;
       console.log(str)
       sendResponse({
         type: 'output',
@@ -77,7 +77,7 @@ function executeCode(id: string, code: string) {
           startTime,
           endTime: new Date().toISOString(),
           hasValue: !!str,
-          jsonValue: str ? value_to_json(ctx.args[0].value) : null,
+          jsonValue: str ? value_to_json(ctx.args[0].val) : null,
           stringValue: str
         }
       });
