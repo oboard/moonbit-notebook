@@ -26,7 +26,7 @@ const abortFlags = new Map<string, boolean>();
 let vm: unknown;
 
 try {
-  vm = create(true, true);
+  vm = create(true);
 
 } catch (error) {
   console.error('Failed to initialize MoonBit VM:', error);
@@ -67,8 +67,8 @@ function executeCode(id: string, code: string) {
     const startTime = new Date().toISOString();
 
     // 添加内置函数
-    add_embedded_fn(vm, '%println_mono', (ctx: { arguments: { value: unknown }[] }) => {
-      const str = `${value_to_string(ctx.arguments[0].value)}\n`;
+    add_embedded_fn(vm, '%println_mono', (ctx: { args: { value: unknown }[] }) => {
+      const str = `${value_to_string(ctx.args[0].value)}\n`;
       console.log(str)
       sendResponse({
         type: 'output',
@@ -77,7 +77,7 @@ function executeCode(id: string, code: string) {
           startTime,
           endTime: new Date().toISOString(),
           hasValue: !!str,
-          jsonValue: str ? value_to_json(ctx.arguments[0].value) : null,
+          jsonValue: str ? value_to_json(ctx.args[0].value) : null,
           stringValue: str
         }
       });
