@@ -1,7 +1,5 @@
 import type * as MoonBit from "./moonbit.d.ts";
 
-export function stop(vm: any): MoonBit.Unit;
-
 export function add_embedded_method(vm: any,
                                     name: MoonBit.String,
                                     method_name: MoonBit.String,

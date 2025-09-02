@@ -1,4 +1,4 @@
-import { create, eval as eval_mb, value_to_json, eval_result_to_string, add_embedded_fn, value_to_string, stop } from '../interpreter/moonbit-eval';
+import { create, eval as eval_mb, value_to_json, eval_result_to_string, add_embedded_fn, value_to_string } from '../interpreter/moonbit-eval';
 
 interface WorkerMessage {
   type: 'execute' | 'abort';
@@ -137,7 +137,6 @@ function executeCode(id: string, code: string) {
 
 function abortExecution(id: string) {
   abortFlags.set(id, true);
-  stop(vm);
   sendResponse({ type: 'aborted', id });
 }
 
