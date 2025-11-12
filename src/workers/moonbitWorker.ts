@@ -1,4 +1,4 @@
-import { create, eval as eval_mb, value_to_json, eval_result_to_string, add_embedded_fn, value_to_string } from '../interpreter/moonbit-eval';
+import { create, eval as eval_mb, value_to_json, eval_result_to_string, add_embedded_fn, value_to_string, code_to_ast } from '../interpreter/moonbit-eval';
 
 interface WorkerMessage {
   type: 'execute' | 'abort';
@@ -7,7 +7,7 @@ interface WorkerMessage {
 }
 
 interface WorkerResponse {
-  type: 'output' | 'result' | 'error' | 'aborted';
+  type: 'output' | 'result' | 'error' | 'aborted' | 'ast';
   id: string;
   data?: {
     startTime: string;
@@ -68,6 +68,7 @@ function executeCode(id: string, code: string) {
 
     // 添加内置函数
     add_embedded_fn(vm, '%println_mono', (ctx: { args: { val: unknown }[] }) => {
+      console.log(ctx)
       const str = `${value_to_string(ctx.args[0].val)}\n`;
       console.log(str)
       sendResponse({
@@ -89,8 +90,8 @@ function executeCode(id: string, code: string) {
     // 执行代码
     const result = eval_mb(vm, code, false, false);
     console.log(result)
-    if (typeof result._0._0 === "string") {
-      throw new Error(result._0._0)
+    if (typeof result._0 === "string") {
+      throw new Error(result._0)
     }
     // 再次检查是否被中断
     if (abortFlags.get(id)) {
@@ -100,6 +101,19 @@ function executeCode(id: string, code: string) {
 
     const endTime = new Date().toISOString();
 
+
+    sendResponse({
+      type: 'ast',
+      id,
+      data: {
+        startTime,
+        endTime,
+        hasValue: true,
+        jsonValue: code_to_ast(code),
+        stringValue: ""
+      }
+    });
+
     // 发送成功结果（只传递可序列化的数据）
     sendResponse({
       type: 'result',
@@ -107,9 +121,9 @@ function executeCode(id: string, code: string) {
       data: {
         startTime,
         endTime,
-        hasValue: !!result._0._0,
-        jsonValue: result._0._0 ? value_to_json(result._0._0) : null,
-        stringValue: eval_result_to_string(result._0)
+        hasValue: true,
+        jsonValue: result._0 ? value_to_json(result._0) : null,
+        stringValue: eval_result_to_string(result)
       }
     });
 

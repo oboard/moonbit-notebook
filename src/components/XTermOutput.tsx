@@ -2,10 +2,11 @@ import { useEffect, useRef } from 'react';
 import { Terminal } from '@xterm/xterm';
 import { FitAddon } from '@xterm/addon-fit';
 import '@xterm/xterm/css/xterm.css';
+import type { OutputType } from '../types/notebook';
 
 interface XTermOutputProps {
   content: string;
-  outputType: 'error' | 'stream' | 'execute_result' | 'display_data';
+  outputType: OutputType;
 }
 
 export const XTermOutput: React.FC<XTermOutputProps> = ({ content, outputType }) => {

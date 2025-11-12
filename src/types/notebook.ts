@@ -19,8 +19,10 @@ export interface NotebookCell {
   outputs?: CellOutput[];
 }
 
+export type OutputType = 'ast' | 'execute_result' | 'display_data' | 'stream' | 'error';
+
 export interface CellOutput {
-  output_type: 'execute_result' | 'display_data' | 'stream' | 'error';
+  output_type: OutputType;
   data?: Record<string, unknown>;
   text?: string[];
   execution_count?: number;

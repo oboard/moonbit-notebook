@@ -162,6 +162,7 @@ export const Cell: React.FC<CellProps> = ({
   // 渲染输出
   const renderOutput = useCallback((output: CellOutput): string => {
     switch (output.output_type) {
+      case 'ast':
       case 'execute_result':
       case 'display_data':
         return (output.data?.['text/plain'] as string) || '';
@@ -405,6 +406,7 @@ export const Cell: React.FC<CellProps> = ({
                         key={outputId}
                         displayDataTypes={false}
                         enableClipboard={true}
+                        collapsed={true}
                         name={false}
                         indentWidth={2}
                       />

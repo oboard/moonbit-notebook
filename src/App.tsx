@@ -72,6 +72,19 @@ function App() {
               });
             }
             break;
+          case 'ast':
+            if (data) {
+              addCellOutput(id, {
+                output_type: 'ast',
+                execution_count: 1,
+                data: {
+                  'application/json': data.jsonValue,
+                  'text/plain': data.stringValue
+                },
+                metadata: {}
+              });
+            }
+            break;
           case 'result':
             if (data) {
               // 更新cell的metadata中的ExecuteTime
